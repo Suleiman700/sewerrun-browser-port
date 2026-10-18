@@ -1,0 +1,47 @@
+property pDragging
+
+on mouseDown me
+  [  0] pushint8 1 .............................. <1>
+  [  2] pusharglist 1 ........................... <1>
+  [  4] extcall 26 .............................. <sprite(1)>
+  [  6] getobjprop 696 .......................... <sprite(1).fullscreen>
+  [  9] pusharglist 1 ........................... <sprite(1).fullscreen>
+  [ 11] extcall 25 .............................. <integer(sprite(1).fullscreen)>
+  [ 13] setlocal 0 .............................. fs = integer(sprite(1).fullscreen)
+  [ 15] getlocal 0 .............................. <fs>
+  [ 17] pushzero ................................ <0>
+  [ 18] eq ...................................... <fs = 0>
+  [ 19] pusharglist 0 ........................... <>
+  [ 21] thebuiltin 217 .......................... <the mouseV>
+  [ 23] pushint8 40 ............................. <40>
+  [ 25] lt ...................................... <the mouseV < 40>
+  [ 26] and ..................................... <(fs = 0) and (the mouseV < 40)>
+  [ 27] jmpifz [ 41] ............................ if (fs = 0) and (the mouseV < 40) then
+  [ 30] pushcons 0 .............................. <"startdrag">
+  [ 32] pusharglistnoret 1 ...................... <"startdrag">
+  [ 34] extcall 129 ............................. externalEvent("startdrag")
+  [ 36] pushint8 1 .............................. <1>
+  [ 38] setprop 697 ............................. pDragging = 1
+  [ 41] ret
+end
+
+on mouseUp me
+  [  0] pushzero ................................ <0>
+  [  1] setprop 697 ............................. pDragging = 0
+  [  4] ret
+end
+
+on beginSprite me
+  [  0] pushzero ................................ <0>
+  [  1] setprop 697 ............................. pDragging = 0
+  [  4] ret
+end
+
+on mouseWithin me
+  [  0] getprop 697 ............................. <pDragging>
+  [  3] jmpifz [ 12] ............................ if pDragging then
+  [  6] pushcons 1 .............................. <"movewindow">
+  [  8] pusharglistnoret 1 ...................... <"movewindow">
+  [ 10] extcall 129 ............................. externalEvent("movewindow")
+  [ 12] ret
+end

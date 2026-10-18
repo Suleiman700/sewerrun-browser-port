@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sewer Run — Course Editor</title>
+  <link rel="stylesheet" href="editor.css">
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.js" } }
+  </script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Sewer<span>Run</span> <em>Course Editor</em></div>
+  <label class="field">
+    <span>Course</span>
+    <select id="course"></select>
+  </label>
+  <div class="tools">
+    <button id="undo" title="Undo (Ctrl+Z)">Undo</button>
+    <button id="redo" title="Redo (Ctrl+Shift+Z)">Redo</button>
+    <button id="topView" title="Top view (T)">Top view</button>
+    <button id="fitView" title="Fit course (H)">Fit</button>
+    <button id="resetCourse" class="danger" title="Discard edits for this course">Reset course</button>
+    <button id="exportBtn" class="primary">Export</button>
+  </div>
+</header>
+
+<aside class="sidebar">
+  <section>
+    <h3>Layers</h3>
+    <div id="layers"></div>
+  </section>
+
+  <section>
+    <h3>Add point</h3>
+    <p class="hint">Pick a layer, then <b>Shift + click</b> the track to drop a point there, or use the button to insert after the selected one.</p>
+    <div class="row">
+      <select id="addLayer"></select>
+      <button id="addBtn">Insert</button>
+    </div>
+  </section>
+
+  <section id="selPanel" class="hidden">
+    <h3>Selected <span id="selTitle"></span></h3>
+    <div class="vec" id="posFields">
+      <label>X <input type="number" step="10" data-k="pos" data-i="0"></label>
+      <label>Y <input type="number" step="10" data-k="pos" data-i="1"></label>
+      <label>Z <input type="number" step="10" data-k="pos" data-i="2"></label>
+    </div>
+    <div id="axisBlock">
+      <div class="sub">Facing (game stores the reverse of travel direction)</div>
+      <div class="vec">
+        <label>X <input type="number" step="0.01" data-k="axis" data-i="0"></label>
+        <label>Y <input type="number" step="0.01" data-k="axis" data-i="1"></label>
+        <label>Z <input type="number" step="0.01" data-k="axis" data-i="2"></label>
+      </div>
+      <div class="row">
+        <button id="alignBtn" title="Point this checkpoint towards the next one">Align to next</button>
+        <button id="alignAllBtn" title="Align every checkpoint to the next one">Align all</button>
+      </div>
+    </div>
+    <div class="row">
+      <button id="prevBtn">◀ Prev</button>
+      <button id="nextBtn">Next ▶</button>
+      <button id="dropBtn" title="Snap down onto the track ribbon">Snap</button>
+      <button id="delBtn" class="danger" title="Delete (Del)">Delete</button>
+    </div>
+  </section>
+
+  <section>
+    <h3>View</h3>
+    <label class="slider">Marker size <input id="markerSize" type="range" min="30" max="300" value="100"></label>
+    <label class="slider">Track width <input id="trackWidth" type="range" min="1000" max="12000" value="5000"></label>
+    <label class="check"><input id="showScenery" type="checkbox" checked> Scenery objects (read-only)</label>
+    <label class="check"><input id="showLabels" type="checkbox" checked> Hover labels</label>
+  </section>
+
+  <section class="note">
+    <h3>About the track</h3>
+    <p>The surface shown is built from the checkpoint path. The original track meshes are compressed in a format this editor can't decode yet; scenery positions come straight from the game files.</p>
+  </section>
+</aside>
+
+<main class="viewport" id="viewport">
+  <div class="status" id="status"></div>
+  <div class="tip hidden" id="tip"></div>
+  <div class="help">
+    <b>Drag</b> orbit · <b>Right-drag</b> pan · <b>Scroll</b> zoom · <b>Click</b> select · <b>Shift+click</b> add · <b>Del</b> delete · <b>F</b> focus
+  </div>
+</main>
+
+<div class="modal hidden" id="exportModal">
+  <div class="modal-card">
+    <header>
+      <h2>Export — <span id="exportCourse"></span></h2>
+      <button class="close" id="exportClose">✕</button>
+    </header>
+    <p class="hint">Each block is in the game's own format: one <code>vector( x, y, z )</code> per line. Paste it into the matching text cast member in Director (e.g. <code>checkpoints1</code>).</p>
+    <div class="tabs" id="exportTabs"></div>
+    <textarea id="exportText" readonly spellcheck="false"></textarea>
+    <footer>
+      <button id="copyBtn">Copy</button>
+      <button id="dlTxtBtn">Download .txt</button>
+      <button id="dlAllBtn">Download all courses (.json)</button>
+      <label class="btn-like">Import .json <input id="importFile" type="file" accept=".json" hidden></label>
+    </footer>
+  </div>
+</div>
+
+<script type="module" src="editor.js"></script>
+</body>
+</html>

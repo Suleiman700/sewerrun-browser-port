@@ -1,0 +1,1872 @@
+property w3d, pCam, pBoarder, pAnimFrames, pDummyNull, upkey, downkey, leftkey, rightkey, grabkey, trickkey
+global gUser
+
+on beginSprite me
+  [  0] pushint8 29 ............................. <29>
+  [  2] setlocal 0
+  [  4] getlocal 0
+  [  6] pushint8 34 ............................. <34>
+  [  8] lteq
+  [  9] jmpifz [ 45] ............................ repeat with i = 29 to 34
+  [ 12] getlocal 0 .............................. <i>
+  [ 14] pusharglist 1 ........................... <i>
+  [ 16] extcall 108 ............................. <member(i)>
+  [ 18] getobjprop 190 .......................... <member(i).type>
+  [ 20] pushsymb 191 ............................ <#shockwave3d>
+  [ 22] eq ...................................... <member(i).type = #shockwave3d>
+  [ 23] jmpifz [ 36] ............................ if member(i).type = #shockwave3d then
+  [ 26] getlocal 0 .............................. <i>
+  [ 28] pusharglist 1 ........................... <i>
+  [ 30] extcall 108 ............................. <member(i)>
+  [ 32] pusharglistnoret 1 ...................... <member(i)>
+  [ 34] objcall 192 ............................. member(i).resetWorld()
+  [ 36] pushint8 1
+  [ 38] getlocal 0
+  [ 40] add
+  [ 41] setlocal 0
+  [ 43] endrepeat [  4]
+  [ 45] pushint8 2 .............................. <2>
+  [ 47] pusharglist 1 ........................... <2>
+  [ 49] extcall 26 .............................. <sprite(2)>
+  [ 51] getobjprop 108 .......................... <sprite(2).member>
+  [ 53] setprop 194 ............................. w3d = sprite(2).member
+  [ 55] getprop 194 ............................. <w3d>
+  [ 57] pushsymb 195 ............................ <#bottomLeft>
+  [ 59] setobjprop 196 .......................... w3d.directionalPreset = #bottomLeft
+  [ 61] pusharglistnoret 0 ...................... <>
+  [ 63] localcall 1 ............................. setupCharacter()
+  [ 65] pusharglistnoret 0 ...................... <>
+  [ 67] localcall 12 ............................ setupCamera()
+  [ 69] pusharglistnoret 0 ...................... <>
+  [ 71] extcall 3 ............................... changeCharacter()
+  [ 73] pushint8 1 .............................. <1>
+  [ 75] pusharglist 1 ........................... <1>
+  [ 77] extcall 26 .............................. <sprite(1)>
+  [ 79] pusharglistnoret 1 ...................... <sprite(1)>
+  [ 81] objcall 109 ............................. sprite(1).play()
+  [ 83] ret
+end
+
+on setupCharacter
+  [  0] pushsymb 90 ............................. <#board>
+  [  2] pushint8 30 ............................. <30>
+  [  4] pushsymb 313 ............................ <#anim>
+  [  7] pushint8 31 ............................. <31>
+  [  9] pushsymb 314 ............................ <#dude>
+  [ 12] pushint8 33 ............................. <33>
+  [ 14] pushsymb 315 ............................ <#chick>
+  [ 17] pushint8 32 ............................. <32>
+  [ 19] pushsymb 316 ............................ <#bits>
+  [ 22] pushint8 34 ............................. <34>
+  [ 24] pusharglist 10 .......................... <[#board: 30, #anim: 31, #dude: 33, #chick: 32, #bits: 34]>
+  [ 26] pushproplist ............................ <[#board: 30, #anim: 31, #dude: 33, #chick: 32, #bits: 34]>
+  [ 27] setlocal 0 .............................. mem = [#board: 30, #anim: 31, #dude: 33, #chick: 32, #bits: 34]
+  [ 29] getprop 194 ............................. <w3d>
+  [ 31] pushcons 0 .............................. <"DudeBonesAnim">
+  [ 33] pushcons 1 .............................. <"Dude">
+  [ 35] getlocal 0 .............................. <mem>
+  [ 37] getobjprop 313 .......................... <mem.anim>
+  [ 40] pusharglist 1 ........................... <mem.anim>
+  [ 42] extcall 108 ............................. <member(mem.anim)>
+  [ 44] pusharglist 4 ........................... <w3d, "DudeBonesAnim", "Dude", member(mem.anim)>
+  [ 46] objcall 317 ............................. <w3d.cloneMotionFromCastmember("DudeBonesAnim", "Dude", member(mem.anim))>
+  [ 49] setlocal 1 .............................. dudeMotion = w3d.cloneMotionFromCastmember("DudeBonesAnim", "Dude", member(mem.anim))
+  [ 51] getprop 194 ............................. <w3d>
+  [ 53] pushcons 2 .............................. <"BoardKeyAnim">
+  [ 55] pushcons 3 .............................. <"Boardkey">
+  [ 57] getlocal 0 .............................. <mem>
+  [ 59] getobjprop 90 ........................... <mem.board>
+  [ 61] pusharglist 1 ........................... <mem.board>
+  [ 63] extcall 108 ............................. <member(mem.board)>
+  [ 65] pusharglist 4 ........................... <w3d, "BoardKeyAnim", "Boardkey", member(mem.board)>
+  [ 67] objcall 317 ............................. <w3d.cloneMotionFromCastmember("BoardKeyAnim", "Boardkey", member(mem.board))>
+  [ 70] setlocal 2 .............................. boardMotion = w3d.cloneMotionFromCastmember("BoardKeyAnim", "Boardkey", member(mem.board))
+  [ 72] getprop 194 ............................. <w3d>
+  [ 74] pushcons 4 .............................. <"ftWheelsKeyAnim">
+  [ 76] pushcons 5 .............................. <"Wheels01key">
+  [ 78] getlocal 0 .............................. <mem>
+  [ 80] getobjprop 90 ........................... <mem.board>
+  [ 82] pusharglist 1 ........................... <mem.board>
+  [ 84] extcall 108 ............................. <member(mem.board)>
+  [ 86] pusharglist 4 ........................... <w3d, "ftWheelsKeyAnim", "Wheels01key", member(mem.board)>
+  [ 88] objcall 317 ............................. <w3d.cloneMotionFromCastmember("ftWheelsKeyAnim", "Wheels01key", member(mem.board))>
+  [ 91] setlocal 3 .............................. ftWheelsMotion = w3d.cloneMotionFromCastmember("ftWheelsKeyAnim", "Wheels01key", member(mem.board))
+  [ 93] getprop 194 ............................. <w3d>
+  [ 95] pushcons 6 .............................. <"bkWheelsKeyAnim">
+  [ 97] pushcons 7 .............................. <"Wheels01BKkey">
+  [ 99] getlocal 0 .............................. <mem>
+  [101] getobjprop 90 ........................... <mem.board>
+  [103] pusharglist 1 ........................... <mem.board>
+  [105] extcall 108 ............................. <member(mem.board)>
+  [107] pusharglist 4 ........................... <w3d, "bkWheelsKeyAnim", "Wheels01BKkey", member(mem.board)>
+  [109] objcall 317 ............................. <w3d.cloneMotionFromCastmember("bkWheelsKeyAnim", "Wheels01BKkey", member(mem.board))>
+  [112] setlocal 4 .............................. bkWheelsMotion = w3d.cloneMotionFromCastmember("bkWheelsKeyAnim", "Wheels01BKkey", member(mem.board))
+  [114] pusharglist 0 ........................... <[]>
+  [116] pushlist ................................ <[]>
+  [117] setlocal 5 .............................. grabs = []
+  [119] getlocal 5 .............................. <grabs>
+  [121] pushint8 83 ............................. <83>
+  [123] pushint8 88 ............................. <88>
+  [125] pushint8 98 ............................. <98>
+  [127] pushint8 103 ............................ <103>
+  [129] pusharglist 4 ........................... <[83, 88, 98, 103]>
+  [131] pushlist ................................ <[83, 88, 98, 103]>
+  [132] pusharglistnoret 2 ...................... <grabs, [83, 88, 98, 103]>
+  [134] objcall 233 ............................. grabs.add([83, 88, 98, 103])
+  [136] getlocal 5 .............................. <grabs>
+  [138] pushint8 113 ............................ <113>
+  [140] pushint8 118 ............................ <118>
+  [142] pushint8 127 ............................ <127>
+  [144] pushint16 132 ........................... <132>
+  [147] pusharglist 4 ........................... <[113, 118, 127, 132]>
+  [149] pushlist ................................ <[113, 118, 127, 132]>
+  [150] pusharglistnoret 2 ...................... <grabs, [113, 118, 127, 132]>
+  [152] objcall 233 ............................. grabs.add([113, 118, 127, 132])
+  [154] getlocal 5 .............................. <grabs>
+  [156] pushint16 142 ........................... <142>
+  [159] pushint16 147 ........................... <147>
+  [162] pushint16 157 ........................... <157>
+  [165] pushint16 162 ........................... <162>
+  [168] pusharglist 4 ........................... <[142, 147, 157, 162]>
+  [170] pushlist ................................ <[142, 147, 157, 162]>
+  [171] pusharglistnoret 2 ...................... <grabs, [142, 147, 157, 162]>
+  [173] objcall 233 ............................. grabs.add([142, 147, 157, 162])
+  [175] getlocal 5 .............................. <grabs>
+  [177] pushint16 172 ........................... <172>
+  [180] pushint16 177 ........................... <177>
+  [183] pushint16 187 ........................... <187>
+  [186] pushint16 192 ........................... <192>
+  [189] pusharglist 4 ........................... <[172, 177, 187, 192]>
+  [191] pushlist ................................ <[172, 177, 187, 192]>
+  [192] pusharglistnoret 2 ...................... <grabs, [172, 177, 187, 192]>
+  [194] objcall 233 ............................. grabs.add([172, 177, 187, 192])
+  [196] pusharglist 0 ........................... <[]>
+  [198] pushlist ................................ <[]>
+  [199] setlocal 6 .............................. tricks = []
+  [201] getlocal 6 .............................. <tricks>
+  [203] pushint16 202 ........................... <202>
+  [206] pushint16 232 ........................... <232>
+  [209] pusharglist 2 ........................... <[202, 232]>
+  [211] pushlist ................................ <[202, 232]>
+  [212] pusharglistnoret 2 ...................... <tricks, [202, 232]>
+  [214] objcall 233 ............................. tricks.add([202, 232])
+  [216] getlocal 6 .............................. <tricks>
+  [218] pushint16 242 ........................... <242>
+  [221] pushint16 272 ........................... <272>
+  [224] pusharglist 2 ........................... <[242, 272]>
+  [226] pushlist ................................ <[242, 272]>
+  [227] pusharglistnoret 2 ...................... <tricks, [242, 272]>
+  [229] objcall 233 ............................. tricks.add([242, 272])
+  [231] getlocal 6 .............................. <tricks>
+  [233] pushint16 282 ........................... <282>
+  [236] pushint16 312 ........................... <312>
+  [239] pusharglist 2 ........................... <[282, 312]>
+  [241] pushlist ................................ <[282, 312]>
+  [242] pusharglistnoret 2 ...................... <tricks, [282, 312]>
+  [244] objcall 233 ............................. tricks.add([282, 312])
+  [246] getlocal 6 .............................. <tricks>
+  [248] pushint16 322 ........................... <322>
+  [251] pushint16 352 ........................... <352>
+  [254] pusharglist 2 ........................... <[322, 352]>
+  [256] pushlist ................................ <[322, 352]>
+  [257] pusharglistnoret 2 ...................... <tricks, [322, 352]>
+  [259] objcall 233 ............................. tricks.add([322, 352])
+  [261] getlocal 6 .............................. <tricks>
+  [263] pushint16 362 ........................... <362>
+  [266] pushint16 397 ........................... <397>
+  [269] pusharglist 2 ........................... <[362, 397]>
+  [271] pushlist ................................ <[362, 397]>
+  [272] pusharglistnoret 2 ...................... <tricks, [362, 397]>
+  [274] objcall 233 ............................. tricks.add([362, 397])
+  [276] getlocal 6 .............................. <tricks>
+  [278] pushint16 407 ........................... <407>
+  [281] pushint16 447 ........................... <447>
+  [284] pusharglist 2 ........................... <[407, 447]>
+  [286] pushlist ................................ <[407, 447]>
+  [287] pusharglistnoret 2 ...................... <tricks, [407, 447]>
+  [289] objcall 233 ............................. tricks.add([407, 447])
+  [291] getlocal 6 .............................. <tricks>
+  [293] pushint16 572 ........................... <572>
+  [296] pushint16 612 ........................... <612>
+  [299] pusharglist 2 ........................... <[572, 612]>
+  [301] pushlist ................................ <[572, 612]>
+  [302] pusharglistnoret 2 ...................... <tricks, [572, 612]>
+  [304] objcall 233 ............................. tricks.add([572, 612])
+  [306] getlocal 6 .............................. <tricks>
+  [308] pushint16 622 ........................... <622>
+  [311] pushint16 662 ........................... <662>
+  [314] pusharglist 2 ........................... <[622, 662]>
+  [316] pushlist ................................ <[622, 662]>
+  [317] pusharglistnoret 2 ...................... <tricks, [622, 662]>
+  [319] objcall 233 ............................. tricks.add([622, 662])
+  [321] getlocal 6 .............................. <tricks>
+  [323] pushint16 457 ........................... <457>
+  [326] pushint16 502 ........................... <502>
+  [329] pusharglist 2 ........................... <[457, 502]>
+  [331] pushlist ................................ <[457, 502]>
+  [332] pusharglistnoret 2 ...................... <tricks, [457, 502]>
+  [334] objcall 233 ............................. tricks.add([457, 502])
+  [336] getlocal 6 .............................. <tricks>
+  [338] pushint16 512 ........................... <512>
+  [341] pushint16 562 ........................... <562>
+  [344] pusharglist 2 ........................... <[512, 562]>
+  [346] pushlist ................................ <[512, 562]>
+  [347] pusharglistnoret 2 ...................... <tricks, [512, 562]>
+  [349] objcall 233 ............................. tricks.add([512, 562])
+  [351] getlocal 6 .............................. <tricks>
+  [353] pushint16 672 ........................... <672>
+  [356] pushint16 722 ........................... <722>
+  [359] pusharglist 2 ........................... <[672, 722]>
+  [361] pushlist ................................ <[672, 722]>
+  [362] pusharglistnoret 2 ...................... <tricks, [672, 722]>
+  [364] objcall 233 ............................. tricks.add([672, 722])
+  [366] getlocal 6 .............................. <tricks>
+  [368] pushint16 732 ........................... <732>
+  [371] pushint16 792 ........................... <792>
+  [374] pusharglist 2 ........................... <[732, 792]>
+  [376] pushlist ................................ <[732, 792]>
+  [377] pusharglistnoret 2 ...................... <tricks, [732, 792]>
+  [379] objcall 233 ............................. tricks.add([732, 792])
+  [381] pushsymb 319 ............................ <#leanRight>
+  [384] pushzero ................................ <0>
+  [385] pushsymb 320 ............................ <#default>
+  [388] pushint8 10 ............................. <10>
+  [390] pushsymb 321 ............................ <#leanLeft>
+  [393] pushint8 20 ............................. <20>
+  [395] pushsymb 322 ............................ <#landStart>
+  [398] pushint8 30 ............................. <30>
+  [400] pushsymb 323 ............................ <#landEnd>
+  [403] pushint8 44 ............................. <44>
+  [405] pushsymb 324 ............................ <#crashStart>
+  [408] pushint8 54 ............................. <54>
+  [410] pushsymb 325 ............................ <#crashEnd>
+  [413] pushint8 73 ............................. <73>
+  [415] pushsymb 326 ............................ <#grabs>
+  [418] getlocal 5 .............................. <grabs>
+  [420] pushsymb 327 ............................ <#tricks>
+  [423] getlocal 6 .............................. <tricks>
+  [425] pusharglist 18 .......................... <[#leanRight: 0, #default: 10, #leanLeft: 20, #landStart: 30, #landEnd: 44, #crashStart: 54, #crashEnd: 73, #grabs: grabs, #tricks: tricks]>
+  [427] pushproplist ............................ <[#leanRight: 0, #default: 10, #leanLeft: 20, #landStart: 30, #landEnd: 44, #crashStart: 54, #crashEnd: 73, #grabs: grabs, #tricks: tricks]>
+  [428] setprop 318 ............................. pAnimFrames = [#leanRight: 0, #default: 10, #leanLeft: 20, #landStart: 30, #landEnd: 44, #crashStart: 54, #crashEnd: 73, #grabs: grabs, #tricks: tricks]
+  [431] pushfloat32 1.0 ......................... <1.0>
+  [436] pushfloat32 25.0 ........................ <25.0>
+  [441] div ..................................... <1.0 / 25.0>
+  [442] pushfloat32 1000.0 ...................... <1000.0>
+  [447] mul ..................................... <1.0 / 25.0 * 1000.0>
+  [448] setlocal 7 .............................. animRate = 1.0 / 25.0 * 1000.0
+  [450] pushint8 1 .............................. <1>
+  [452] setlocal 8
+  [454] getlocal 8
+  [456] getprop 318 ............................. <pAnimFrames>
+  [459] getobjprop 220 .......................... <pAnimFrames.count>
+  [461] lteq
+  [462] jmpifz [496] ............................ repeat with i = 1 to pAnimFrames.count
+  [465] getprop 318 ............................. <pAnimFrames>
+  [468] getlocal 8 .............................. <i>
+  [470] getprop 318 ............................. <pAnimFrames>
+  [473] getlocal 8 .............................. <i>
+  [475] pusharglist 2 ........................... <pAnimFrames, i>
+  [477] objcall 35 .............................. <pAnimFrames[i]>
+  [479] getlocal 7 .............................. <animRate>
+  [481] mul ..................................... <pAnimFrames[i] * animRate>
+  [482] pusharglistnoret 3 ...................... <pAnimFrames, i, pAnimFrames[i] * animRate>
+  [484] objcall 291 ............................. pAnimFrames[i] = pAnimFrames[i] * animRate
+  [487] pushint8 1
+  [489] getlocal 8
+  [491] add
+  [492] setlocal 8
+  [494] endrepeat [454]
+  [496] pusharglist 0 ........................... <[]>
+  [498] pushlist ................................ <[]>
+  [499] setprop 328 ............................. pBoarder = []
+  [502] getprop 194 ............................. <w3d>
+  [504] pushcons 8 .............................. <"Chick">
+  [506] pushcons 8 .............................. <"Chick">
+  [508] getlocal 0 .............................. <mem>
+  [510] getobjprop 315 .......................... <mem.chick>
+  [513] pusharglist 1 ........................... <mem.chick>
+  [515] extcall 108 ............................. <member(mem.chick)>
+  [517] pusharglist 4 ........................... <w3d, "Chick", "Chick", member(mem.chick)>
+  [519] objcall 280 ............................. <w3d.cloneModelFromCastmember("Chick", "Chick", member(mem.chick))>
+  [522] setlocal 9 .............................. chick = w3d.cloneModelFromCastmember("Chick", "Chick", member(mem.chick))
+  [524] getprop 194 ............................. <w3d>
+  [526] pushcons 1 .............................. <"Dude">
+  [528] pusharglist 2 ........................... <w3d, "Dude">
+  [530] objcall 246 ............................. <w3d.model("Dude")>
+  [532] setlocal 10 ............................. dude = w3d.model("Dude")
+  [534] getlocal 10 ............................. <dude>
+  [536] pushzero ................................ <0>
+  [537] pushint8 10 ............................. <10>
+  [539] pushzero ................................ <0>
+  [540] pusharglistnoret 4 ...................... <dude, 0, 10, 0>
+  [542] objcall 286 ............................. dude.translate(0, 10, 0)
+  [545] getlocal 9 .............................. <chick>
+  [547] pushzero ................................ <0>
+  [548] pushint8 10 ............................. <10>
+  [550] pushzero ................................ <0>
+  [551] pusharglistnoret 4 ...................... <chick, 0, 10, 0>
+  [553] objcall 286 ............................. chick.translate(0, 10, 0)
+  [556] getlocal 10 ............................. <dude>
+  [558] getchainedprop 330 ...................... <dude.bonesPlayer>
+  [561] pusharglistnoret 1 ...................... <dude.bonesPlayer>
+  [563] objcall 331 ............................. dude.bonesPlayer.removeLast()
+  [566] getlocal 10 ............................. <dude>
+  [568] getchainedprop 330 ...................... <dude.bonesPlayer>
+  [571] getlocal 1 .............................. <dudeMotion>
+  [573] getobjprop 259 .......................... <dudeMotion.name>
+  [576] pusharglistnoret 2 ...................... <dude.bonesPlayer, dudeMotion.name>
+  [578] objcall 109 ............................. dude.bonesPlayer.play(dudeMotion.name)
+  [580] getlocal 10 ............................. <dude>
+  [582] getchainedprop 330 ...................... <dude.bonesPlayer>
+  [585] pushzero ................................ <0>
+  [586] setobjprop 332 .......................... dude.bonesPlayer.playRate = 0
+  [589] getlocal 9 .............................. <chick>
+  [591] getchainedprop 330 ...................... <chick.bonesPlayer>
+  [594] pusharglistnoret 1 ...................... <chick.bonesPlayer>
+  [596] objcall 331 ............................. chick.bonesPlayer.removeLast()
+  [599] getlocal 9 .............................. <chick>
+  [601] getchainedprop 330 ...................... <chick.bonesPlayer>
+  [604] getlocal 1 .............................. <dudeMotion>
+  [606] getobjprop 259 .......................... <dudeMotion.name>
+  [609] pusharglistnoret 2 ...................... <chick.bonesPlayer, dudeMotion.name>
+  [611] objcall 109 ............................. chick.bonesPlayer.play(dudeMotion.name)
+  [613] getlocal 9 .............................. <chick>
+  [615] getchainedprop 330 ...................... <chick.bonesPlayer>
+  [618] pushzero ................................ <0>
+  [619] setobjprop 332 .......................... chick.bonesPlayer.playRate = 0
+  [622] getprop 194 ............................. <w3d>
+  [624] pushcons 9 .............................. <"Board">
+  [626] pushcons 9 .............................. <"Board">
+  [628] getlocal 0 .............................. <mem>
+  [630] getobjprop 90 ........................... <mem.board>
+  [632] pusharglist 1 ........................... <mem.board>
+  [634] extcall 108 ............................. <member(mem.board)>
+  [636] pusharglist 4 ........................... <w3d, "Board", "Board", member(mem.board)>
+  [638] objcall 280 ............................. <w3d.cloneModelFromCastmember("Board", "Board", member(mem.board))>
+  [641] setlocal 11 ............................. board = w3d.cloneModelFromCastmember("Board", "Board", member(mem.board))
+  [643] getlocal 11 ............................. <board>
+  [645] getchainedprop 333 ...................... <board.keyframePlayer>
+  [648] pushzero ................................ <0>
+  [649] setobjprop 332 .......................... board.keyframePlayer.playRate = 0
+  [652] getlocal 11 ............................. <board>
+  [654] pushsymb 334 ............................ <#child>
+  [657] pushint8 1 .............................. <1>
+  [659] pusharglist 3 ........................... <board, #child, 1>
+  [661] objcall 282 ............................. <board.child[1]>
+  [664] getchainedprop 333 ...................... <board.child[1].keyframePlayer>
+  [667] pusharglistnoret 1 ...................... <board.child[1].keyframePlayer>
+  [669] objcall 331 ............................. board.child[1].keyframePlayer.removeLast()
+  [672] getlocal 11 ............................. <board>
+  [674] pushsymb 334 ............................ <#child>
+  [677] pushint8 1 .............................. <1>
+  [679] pusharglist 3 ........................... <board, #child, 1>
+  [681] objcall 282 ............................. <board.child[1]>
+  [684] getchainedprop 333 ...................... <board.child[1].keyframePlayer>
+  [687] getlocal 3 .............................. <ftWheelsMotion>
+  [689] getobjprop 259 .......................... <ftWheelsMotion.name>
+  [692] pusharglistnoret 2 ...................... <board.child[1].keyframePlayer, ftWheelsMotion.name>
+  [694] objcall 109 ............................. board.child[1].keyframePlayer.play(ftWheelsMotion.name)
+  [696] getlocal 11 ............................. <board>
+  [698] pushsymb 334 ............................ <#child>
+  [701] pushint8 1 .............................. <1>
+  [703] pusharglist 3 ........................... <board, #child, 1>
+  [705] objcall 282 ............................. <board.child[1]>
+  [708] getchainedprop 333 ...................... <board.child[1].keyframePlayer>
+  [711] pushzero ................................ <0>
+  [712] setobjprop 332 .......................... board.child[1].keyframePlayer.playRate = 0
+  [715] getlocal 11 ............................. <board>
+  [717] pushsymb 334 ............................ <#child>
+  [720] pushint8 2 .............................. <2>
+  [722] pusharglist 3 ........................... <board, #child, 2>
+  [724] objcall 282 ............................. <board.child[2]>
+  [727] getchainedprop 333 ...................... <board.child[2].keyframePlayer>
+  [730] pusharglistnoret 1 ...................... <board.child[2].keyframePlayer>
+  [732] objcall 331 ............................. board.child[2].keyframePlayer.removeLast()
+  [735] getlocal 11 ............................. <board>
+  [737] pushsymb 334 ............................ <#child>
+  [740] pushint8 2 .............................. <2>
+  [742] pusharglist 3 ........................... <board, #child, 2>
+  [744] objcall 282 ............................. <board.child[2]>
+  [747] getchainedprop 333 ...................... <board.child[2].keyframePlayer>
+  [750] getlocal 4 .............................. <bkWheelsMotion>
+  [752] getobjprop 259 .......................... <bkWheelsMotion.name>
+  [755] pusharglistnoret 2 ...................... <board.child[2].keyframePlayer, bkWheelsMotion.name>
+  [757] objcall 109 ............................. board.child[2].keyframePlayer.play(bkWheelsMotion.name)
+  [759] getlocal 11 ............................. <board>
+  [761] pushsymb 334 ............................ <#child>
+  [764] pushint8 2 .............................. <2>
+  [766] pusharglist 3 ........................... <board, #child, 2>
+  [768] objcall 282 ............................. <board.child[2]>
+  [771] getchainedprop 333 ...................... <board.child[2].keyframePlayer>
+  [774] pushzero ................................ <0>
+  [775] setobjprop 332 .......................... board.child[2].keyframePlayer.playRate = 0
+  [778] getprop 194 ............................. <w3d>
+  [780] pushcons 10 ............................. <"Wheels01">
+  [782] pusharglist 2 ........................... <w3d, "Wheels01">
+  [784] objcall 246 ............................. <w3d.model("Wheels01")>
+  [786] pusharglist 1 ........................... <w3d.model("Wheels01")>
+  [788] objcall 329 ............................. <w3d.model("Wheels01").getWorldTransform()>
+  [791] setlocal 12 ............................. t1 = w3d.model("Wheels01").getWorldTransform()
+  [793] getprop 194 ............................. <w3d>
+  [795] pushcons 11 ............................. <"Wheels01BK">
+  [797] pusharglist 2 ........................... <w3d, "Wheels01BK">
+  [799] objcall 246 ............................. <w3d.model("Wheels01BK")>
+  [801] pusharglist 1 ........................... <w3d.model("Wheels01BK")>
+  [803] objcall 329 ............................. <w3d.model("Wheels01BK").getWorldTransform()>
+  [806] setlocal 13 ............................. t2 = w3d.model("Wheels01BK").getWorldTransform()
+  [808] pushint8 2 .............................. <2>
+  [810] setlocal 8
+  [812] getlocal 8
+  [814] pushint8 4 .............................. <4>
+  [816] lteq
+  [817] jmpifz [1012] ........................... repeat with i = 2 to 4
+  [820] getprop 194 ............................. <w3d>
+  [822] pushcons 12 ............................. <"FWheels">
+  [824] getlocal 8 .............................. <i>
+  [826] joinstr ................................. <"FWheels" & i>
+  [827] pushcons 13 ............................. <"Wheels0">
+  [829] getlocal 8 .............................. <i>
+  [831] joinstr ................................. <"Wheels0" & i>
+  [832] getlocal 0 .............................. <mem>
+  [834] getobjprop 316 .......................... <mem.bits>
+  [837] pusharglist 1 ........................... <mem.bits>
+  [839] extcall 108 ............................. <member(mem.bits)>
+  [841] pusharglist 4 ........................... <w3d, "FWheels" & i, "Wheels0" & i, member(mem.bits)>
+  [843] objcall 280 ............................. <w3d.cloneModelFromCastmember("FWheels" & i, "Wheels0" & i, member(mem.bits))>
+  [846] setlocal 14 ............................. w1 = w3d.cloneModelFromCastmember("FWheels" & i, "Wheels0" & i, member(mem.bits))
+  [848] getprop 194 ............................. <w3d>
+  [850] pushcons 14 ............................. <"BWheels">
+  [852] getlocal 8 .............................. <i>
+  [854] joinstr ................................. <"BWheels" & i>
+  [855] pushcons 13 ............................. <"Wheels0">
+  [857] getlocal 8 .............................. <i>
+  [859] joinstr ................................. <"Wheels0" & i>
+  [860] pushcons 15 ............................. <"BK">
+  [862] joinstr ................................. <"Wheels0" & i & "BK">
+  [863] getlocal 0 .............................. <mem>
+  [865] getobjprop 316 .......................... <mem.bits>
+  [868] pusharglist 1 ........................... <mem.bits>
+  [870] extcall 108 ............................. <member(mem.bits)>
+  [872] pusharglist 4 ........................... <w3d, "BWheels" & i, "Wheels0" & i & "BK", member(mem.bits)>
+  [874] objcall 280 ............................. <w3d.cloneModelFromCastmember("BWheels" & i, "Wheels0" & i & "BK", member(mem.bits))>
+  [877] setlocal 15 ............................. w2 = w3d.cloneModelFromCastmember("BWheels" & i, "Wheels0" & i & "BK", member(mem.bits))
+  [879] getlocal 14 ............................. <w1>
+  [881] getlocal 12 ............................. <t1>
+  [883] setobjprop 284 .......................... w1.transform = t1
+  [886] getlocal 15 ............................. <w2>
+  [888] getlocal 13 ............................. <t2>
+  [890] setobjprop 284 .......................... w2.transform = t2
+  [893] getlocal 14 ............................. <w1>
+  [895] pushsymb 333 ............................ <#keyframePlayer>
+  [898] pushsymb 263 ............................ <#preserveWorld>
+  [901] pusharglistnoret 3 ...................... <w1, #keyframePlayer, #preserveWorld>
+  [903] objcall 268 ............................. w1.addModifier(#keyframePlayer, #preserveWorld)
+  [906] getlocal 15 ............................. <w2>
+  [908] pushsymb 333 ............................ <#keyframePlayer>
+  [911] pushsymb 263 ............................ <#preserveWorld>
+  [914] pusharglistnoret 3 ...................... <w2, #keyframePlayer, #preserveWorld>
+  [916] objcall 268 ............................. w2.addModifier(#keyframePlayer, #preserveWorld)
+  [919] getlocal 11 ............................. <board>
+  [921] getlocal 14 ............................. <w1>
+  [923] pusharglistnoret 2 ...................... <board, w1>
+  [925] objcall 264 ............................. board.addChild(w1)
+  [928] getlocal 11 ............................. <board>
+  [930] getlocal 15 ............................. <w2>
+  [932] pusharglistnoret 2 ...................... <board, w2>
+  [934] objcall 264 ............................. board.addChild(w2)
+  [937] getlocal 14 ............................. <w1>
+  [939] getchainedprop 333 ...................... <w1.keyframePlayer>
+  [942] pusharglistnoret 1 ...................... <w1.keyframePlayer>
+  [944] objcall 331 ............................. w1.keyframePlayer.removeLast()
+  [947] getlocal 14 ............................. <w1>
+  [949] getchainedprop 333 ...................... <w1.keyframePlayer>
+  [952] getlocal 3 .............................. <ftWheelsMotion>
+  [954] getobjprop 259 .......................... <ftWheelsMotion.name>
+  [957] pusharglistnoret 2 ...................... <w1.keyframePlayer, ftWheelsMotion.name>
+  [959] objcall 109 ............................. w1.keyframePlayer.play(ftWheelsMotion.name)
+  [961] getlocal 14 ............................. <w1>
+  [963] getchainedprop 333 ...................... <w1.keyframePlayer>
+  [966] pushzero ................................ <0>
+  [967] setobjprop 332 .......................... w1.keyframePlayer.playRate = 0
+  [970] getlocal 15 ............................. <w2>
+  [972] getchainedprop 333 ...................... <w2.keyframePlayer>
+  [975] pusharglistnoret 1 ...................... <w2.keyframePlayer>
+  [977] objcall 331 ............................. w2.keyframePlayer.removeLast()
+  [980] getlocal 15 ............................. <w2>
+  [982] getchainedprop 333 ...................... <w2.keyframePlayer>
+  [985] getlocal 4 .............................. <bkWheelsMotion>
+  [987] getobjprop 259 .......................... <bkWheelsMotion.name>
+  [990] pusharglistnoret 2 ...................... <w2.keyframePlayer, bkWheelsMotion.name>
+  [992] objcall 109 ............................. w2.keyframePlayer.play(bkWheelsMotion.name)
+  [994] getlocal 15 ............................. <w2>
+  [996] getchainedprop 333 ...................... <w2.keyframePlayer>
+  [999] pushzero ................................ <0>
+  [1000] setobjprop 332 ......................... w2.keyframePlayer.playRate = 0
+  [1003] pushint8 1
+  [1005] getlocal 8
+  [1007] add
+  [1008] setlocal 8
+  [1010] endrepeat [812]
+  [1012] pushsymb 314 ........................... <#dude>
+  [1015] getlocal 10 ............................ <dude>
+  [1017] pushsymb 315 ........................... <#chick>
+  [1020] getlocal 9 ............................. <chick>
+  [1022] pushsymb 90 ............................ <#board>
+  [1024] getlocal 11 ............................ <board>
+  [1026] pushsymb 313 ........................... <#anim>
+  [1029] pushsymb 381 ........................... <#ride>
+  [1032] pushsymb 382 ........................... <#trickNum>
+  [1035] pushzero ............................... <0>
+  [1036] pushsymb 383 ........................... <#trickPhase>
+  [1039] pushsymb 265 ........................... <#none>
+  [1042] pushsymb 388 ........................... <#bpRate>
+  [1045] pushfloat32 1.0 ........................ <1.0>
+  [1050] pushsymb 420 ........................... <#ftWheelsMotion>
+  [1053] getlocal 3 ............................. <ftWheelsMotion>
+  [1055] getobjprop 259 ......................... <ftWheelsMotion.name>
+  [1058] pushsymb 419 ........................... <#bkWheelsMotion>
+  [1061] getlocal 4 ............................. <bkWheelsMotion>
+  [1063] getobjprop 259 ......................... <bkWheelsMotion.name>
+  [1066] pushsymb 685 ........................... <#ftWheels>
+  [1069] getlocal 11 ............................ <board>
+  [1071] pushint8 2 ............................. <2>
+  [1073] mul .................................... <board * 2>
+  [1074] pushint8 1 ............................. <1>
+  [1076] sub .................................... <(board * 2) - 1>
+  [1077] pushsymb 686 ........................... <#bkWheels>
+  [1080] getlocal 11 ............................ <board>
+  [1082] pushint8 2 ............................. <2>
+  [1084] mul .................................... <board * 2>
+  [1085] pusharglist 22 ......................... <[#dude: dude, #chick: chick, #board: board, #anim: #ride, #trickNum: 0, #trickPhase: #none, #bpRate: 1.0, #ftWheelsMotion: ftWheelsMotion.name, #bkWheelsMotion: bkWheelsMotion.name, #ftWheels: (board * 2) - 1, #bkWheels: board * 2]>
+  [1087] pushproplist ........................... <[#dude: dude, #chick: chick, #board: board, #anim: #ride, #trickNum: 0, #trickPhase: #none, #bpRate: 1.0, #ftWheelsMotion: ftWheelsMotion.name, #bkWheelsMotion: bkWheelsMotion.name, #ftWheels: (board * 2) - 1, #bkWheels: board * 2]>
+  [1088] setlocal 16 ............................ boarder = [#dude: dude, #chick: chick, #board: board, #anim: #ride, #trickNum: 0, #trickPhase: #none, #bpRate: 1.0, #ftWheelsMotion: ftWheelsMotion.name, #bkWheelsMotion: bkWheelsMotion.name, #ftWheels: (board * 2) - 1, #bkWheels: board * 2]
+  [1090] getprop 328 ............................ <pBoarder>
+  [1093] getlocal 16 ............................ <boarder>
+  [1095] pusharglistnoret 2 ..................... <pBoarder, boarder>
+  [1097] objcall 233 ............................ pBoarder.add(boarder)
+  [1099] pushint8 1 ............................. <1>
+  [1101] pusharglistnoret 1 ..................... <1>
+  [1103] localcall 2 ............................ changeWheels(1)
+  [1105] getprop 194 ............................ <w3d>
+  [1107] pushcons 16 ............................ <"dummyNull">
+  [1109] pusharglist 2 .......................... <w3d, "dummyNull">
+  [1111] objcall 335 ............................ <w3d.newModel("dummyNull")>
+  [1114] setprop 398 ............................ pDummyNull = w3d.newModel("dummyNull")
+  [1117] ret
+end
+
+on changeWheels wheels
+  [  0] getprop 328 ............................. <pBoarder>
+  [  3] pushint8 1 .............................. <1>
+  [  5] pusharglist 2 ........................... <pBoarder, 1>
+  [  7] objcall 35 .............................. <pBoarder[1]>
+  [  9] getparam 0 .............................. <wheels>
+  [ 11] pushint8 2 .............................. <2>
+  [ 13] mul ..................................... <wheels * 2>
+  [ 14] pushint8 1 .............................. <1>
+  [ 16] sub ..................................... <(wheels * 2) - 1>
+  [ 17] setobjprop 685 .......................... pBoarder[1].ftWheels = (wheels * 2) - 1
+  [ 20] getprop 328 ............................. <pBoarder>
+  [ 23] pushint8 1 .............................. <1>
+  [ 25] pusharglist 2 ........................... <pBoarder, 1>
+  [ 27] objcall 35 .............................. <pBoarder[1]>
+  [ 29] getparam 0 .............................. <wheels>
+  [ 31] pushint8 2 .............................. <2>
+  [ 33] mul ..................................... <wheels * 2>
+  [ 34] setobjprop 686 .......................... pBoarder[1].bkWheels = wheels * 2
+  [ 37] pushint8 1 .............................. <1>
+  [ 39] setlocal 0
+  [ 41] getlocal 0
+  [ 43] pushint8 4 .............................. <4>
+  [ 45] lteq
+  [ 46] jmpifz [194] ............................ repeat with i = 1 to 4
+  [ 49] getlocal 0 .............................. <i>
+  [ 51] pushint8 2 .............................. <2>
+  [ 53] mul ..................................... <i * 2>
+  [ 54] pushint8 1 .............................. <1>
+  [ 56] sub ..................................... <(i * 2) - 1>
+  [ 57] setlocal 1 .............................. c1 = (i * 2) - 1
+  [ 59] getlocal 0 .............................. <i>
+  [ 61] pushint8 2 .............................. <2>
+  [ 63] mul ..................................... <i * 2>
+  [ 64] setlocal 2 .............................. c2 = i * 2
+  [ 66] getlocal 0 .............................. <i>
+  [ 68] getparam 0 .............................. <wheels>
+  [ 70] eq ...................................... <i = wheels>
+  [ 71] jmpifz [131] ............................ if i = wheels then
+  [ 74] getprop 328 ............................. <pBoarder>
+  [ 77] pushint8 1 .............................. <1>
+  [ 79] pusharglist 2 ........................... <pBoarder, 1>
+  [ 81] objcall 35 .............................. <pBoarder[1]>
+  [ 83] getchainedprop 90 ....................... <pBoarder[1].board>
+  [ 85] pushsymb 334 ............................ <#child>
+  [ 88] getlocal 1 .............................. <c1>
+  [ 90] pusharglist 3 ........................... <pBoarder[1].board, #child, c1>
+  [ 92] objcall 282 ............................. <pBoarder[1].board.child[c1]>
+  [ 95] pushsymb 495 ............................ <#front>
+  [ 98] setobjprop 266 .......................... pBoarder[1].board.child[c1].visibility = #front
+  [101] getprop 328 ............................. <pBoarder>
+  [104] pushint8 1 .............................. <1>
+  [106] pusharglist 2 ........................... <pBoarder, 1>
+  [108] objcall 35 .............................. <pBoarder[1]>
+  [110] getchainedprop 90 ....................... <pBoarder[1].board>
+  [112] pushsymb 334 ............................ <#child>
+  [115] getlocal 2 .............................. <c2>
+  [117] pusharglist 3 ........................... <pBoarder[1].board, #child, c2>
+  [119] objcall 282 ............................. <pBoarder[1].board.child[c2]>
+  [122] pushsymb 495 ............................ <#front>
+  [125] setobjprop 266 .......................... pBoarder[1].board.child[c2].visibility = #front
+  [128] jmp [185] ............................... next repeat
+  [131] getprop 328 ............................. <pBoarder>
+  [134] pushint8 1 .............................. <1>
+  [136] pusharglist 2 ........................... <pBoarder, 1>
+  [138] objcall 35 .............................. <pBoarder[1]>
+  [140] getchainedprop 90 ....................... <pBoarder[1].board>
+  [142] pushsymb 334 ............................ <#child>
+  [145] getlocal 1 .............................. <c1>
+  [147] pusharglist 3 ........................... <pBoarder[1].board, #child, c1>
+  [149] objcall 282 ............................. <pBoarder[1].board.child[c1]>
+  [152] pushsymb 265 ............................ <#none>
+  [155] setobjprop 266 .......................... pBoarder[1].board.child[c1].visibility = #none
+  [158] getprop 328 ............................. <pBoarder>
+  [161] pushint8 1 .............................. <1>
+  [163] pusharglist 2 ........................... <pBoarder, 1>
+  [165] objcall 35 .............................. <pBoarder[1]>
+  [167] getchainedprop 90 ....................... <pBoarder[1].board>
+  [169] pushsymb 334 ............................ <#child>
+  [172] getlocal 2 .............................. <c2>
+  [174] pusharglist 3 ........................... <pBoarder[1].board, #child, c2>
+  [176] objcall 282 ............................. <pBoarder[1].board.child[c2]>
+  [179] pushsymb 265 ............................ <#none>
+  [182] setobjprop 266 .......................... pBoarder[1].board.child[c2].visibility = #none
+  [185] pushint8 1
+  [187] getlocal 0
+  [189] add
+  [190] setlocal 0
+  [192] endrepeat [ 41]
+  [194] pushcons 17 ............................. <"changeWheels : ">
+  [196] getparam 0 .............................. <wheels>
+  [198] joinstr ................................. <"changeWheels : " & wheels>
+  [199] pusharglistnoret 1 ...................... <"changeWheels : " & wheels>
+  [201] extcall 100 ............................. put "changeWheels : " & wheels
+  [203] ret
+end
+
+on helpCamera
+  [  0] getprop 498 ............................. <pCam>
+  [  3] getchainedprop 255 ...................... <pCam.cam>
+  [  5] pushsymb 524 ............................ <#overlay>
+  [  8] pushint8 2 .............................. <2>
+  [ 10] pusharglist 3 ........................... <pCam.cam, #overlay, 2>
+  [ 12] objcall 282 ............................. <pCam.cam.overlay[2]>
+  [ 15] pushzero ................................ <0>
+  [ 16] setobjprop 526 .......................... pCam.cam.overlay[2].blend = 0
+  [ 19] getprop 498 ............................. <pCam>
+  [ 22] pushsymb 610 ............................ <#spin>
+  [ 25] setobjprop 44 ........................... pCam.mode = #spin
+  [ 27] ret
+end
+
+on updateBoarder
+  [  0] getglobal 86 ............................ <gUser>
+  [  2] getobjprop 85 ........................... <gUser.lock>
+  [  4] pushint8 1 .............................. <1>
+  [  6] eq ...................................... <gUser.lock = 1>
+  [  7] jmpifz [ 33] ............................ if gUser.lock = 1 then / else
+  [ 10] getprop 498 ............................. <pCam>
+  [ 13] getchainedprop 255 ...................... <pCam.cam>
+  [ 15] pushsymb 524 ............................ <#overlay>
+  [ 18] pushint8 2 .............................. <2>
+  [ 20] pusharglist 3 ........................... <pCam.cam, #overlay, 2>
+  [ 22] objcall 282 ............................. <pCam.cam.overlay[2]>
+  [ 25] pushint8 100 ............................ <100>
+  [ 27] setobjprop 526 .......................... pCam.cam.overlay[2].blend = 100
+  [ 30] jmp [ 52]
+  [ 33] getprop 498 ............................. <pCam>
+  [ 36] getchainedprop 255 ...................... <pCam.cam>
+  [ 38] pushsymb 524 ............................ <#overlay>
+  [ 41] pushint8 2 .............................. <2>
+  [ 43] pusharglist 3 ........................... <pCam.cam, #overlay, 2>
+  [ 45] objcall 282 ............................. <pCam.cam.overlay[2]>
+  [ 48] pushzero ................................ <0>
+  [ 49] setobjprop 526 .......................... pCam.cam.overlay[2].blend = 0
+  [ 52] getglobal 86 ............................ <gUser>
+  [ 54] getobjprop 83 ........................... <gUser.changeFactor>
+  [ 56] pushzero ................................ <0>
+  [ 57] eq ...................................... <gUser.changeFactor = 0>
+  [ 58] getglobal 86 ............................ <gUser>
+  [ 60] getobjprop 83 ........................... <gUser.changeFactor>
+  [ 62] pushint8 1 .............................. <1>
+  [ 64] gt ...................................... <gUser.changeFactor > 1>
+  [ 65] getglobal 86 ............................ <gUser>
+  [ 67] getobjprop 83 ........................... <gUser.changeFactor>
+  [ 69] pushint8 6 .............................. <6>
+  [ 71] lt ...................................... <gUser.changeFactor < 6>
+  [ 72] and ..................................... <(gUser.changeFactor > 1) and (gUser.changeFactor < 6)>
+  [ 73] or ...................................... <(gUser.changeFactor = 0) or ((gUser.changeFactor > 1) and (gUser.changeFactor < 6))>
+  [ 74] jmpifz [357] ............................ if (gUser.changeFactor = 0) or ((gUser.changeFactor > 1) and (gUser.changeFactor < 6)) then
+  [ 77] pushint8 60 ............................. <60>
+  [ 79] getglobal 86 ............................ <gUser>
+  [ 81] getobjprop 88 ........................... <gUser.body>
+  [ 83] add ..................................... <60 + gUser.body>
+  [ 84] pushint8 74 ............................. <74>
+  [ 86] getglobal 86 ............................ <gUser>
+  [ 88] getobjprop 89 ........................... <gUser.face>
+  [ 90] add ..................................... <74 + gUser.face>
+  [ 91] pushint8 60 ............................. <60>
+  [ 93] getglobal 86 ............................ <gUser>
+  [ 95] getobjprop 88 ........................... <gUser.body>
+  [ 97] add ..................................... <60 + gUser.body>
+  [ 98] pushint8 70 ............................. <70>
+  [100] getglobal 86 ............................ <gUser>
+  [102] getobjprop 89 ........................... <gUser.face>
+  [104] add ..................................... <70 + gUser.face>
+  [105] pushint8 50 ............................. <50>
+  [107] getglobal 86 ............................ <gUser>
+  [109] getobjprop 91 ........................... <gUser.boardGraf>
+  [111] add ..................................... <50 + gUser.boardGraf>
+  [112] pusharglist 5 ........................... <[60 + gUser.body, 74 + gUser.face, 60 + gUser.body, 70 + gUser.face, 50 + gUser.boardGraf]>
+  [114] pushlist ................................ <[60 + gUser.body, 74 + gUser.face, 60 + gUser.body, 70 + gUser.face, 50 + gUser.boardGraf]>
+  [115] setlocal 0 .............................. mem = [60 + gUser.body, 74 + gUser.face, 60 + gUser.body, 70 + gUser.face, 50 + gUser.boardGraf]
+  [117] pusharglist 0 ........................... <[]>
+  [119] pushlist ................................ <[]>
+  [120] setlocal 1 .............................. tex = []
+  [122] getlocal 1 .............................. <tex>
+  [124] getprop 328 ............................. <pBoarder>
+  [127] pushint8 1 .............................. <1>
+  [129] pusharglist 2 ........................... <pBoarder, 1>
+  [131] objcall 35 .............................. <pBoarder[1]>
+  [133] getchainedprop 314 ...................... <pBoarder[1].dude>
+  [136] pushsymb 281 ............................ <#shaderList>
+  [139] pushint8 1 .............................. <1>
+  [141] pusharglist 3 ........................... <pBoarder[1].dude, #shaderList, 1>
+  [143] objcall 282 ............................. <pBoarder[1].dude.shaderList[1]>
+  [146] getchainedprop 283 ...................... <pBoarder[1].dude.shaderList[1].texture>
+  [149] getobjprop 259 .......................... <pBoarder[1].dude.shaderList[1].texture.name>
+  [152] pusharglistnoret 2 ...................... <tex, pBoarder[1].dude.shaderList[1].texture.name>
+  [154] objcall 233 ............................. tex.add(pBoarder[1].dude.shaderList[1].texture.name)
+  [156] getlocal 1 .............................. <tex>
+  [158] getprop 328 ............................. <pBoarder>
+  [161] pushint8 1 .............................. <1>
+  [163] pusharglist 2 ........................... <pBoarder, 1>
+  [165] objcall 35 .............................. <pBoarder[1]>
+  [167] getchainedprop 314 ...................... <pBoarder[1].dude>
+  [170] pushsymb 281 ............................ <#shaderList>
+  [173] pushint8 2 .............................. <2>
+  [175] pusharglist 3 ........................... <pBoarder[1].dude, #shaderList, 2>
+  [177] objcall 282 ............................. <pBoarder[1].dude.shaderList[2]>
+  [180] getchainedprop 283 ...................... <pBoarder[1].dude.shaderList[2].texture>
+  [183] getobjprop 259 .......................... <pBoarder[1].dude.shaderList[2].texture.name>
+  [186] pusharglistnoret 2 ...................... <tex, pBoarder[1].dude.shaderList[2].texture.name>
+  [188] objcall 233 ............................. tex.add(pBoarder[1].dude.shaderList[2].texture.name)
+  [190] getlocal 1 .............................. <tex>
+  [192] getprop 328 ............................. <pBoarder>
+  [195] pushint8 1 .............................. <1>
+  [197] pusharglist 2 ........................... <pBoarder, 1>
+  [199] objcall 35 .............................. <pBoarder[1]>
+  [201] getchainedprop 315 ...................... <pBoarder[1].chick>
+  [204] pushsymb 281 ............................ <#shaderList>
+  [207] pushint8 1 .............................. <1>
+  [209] pusharglist 3 ........................... <pBoarder[1].chick, #shaderList, 1>
+  [211] objcall 282 ............................. <pBoarder[1].chick.shaderList[1]>
+  [214] getchainedprop 283 ...................... <pBoarder[1].chick.shaderList[1].texture>
+  [217] getobjprop 259 .......................... <pBoarder[1].chick.shaderList[1].texture.name>
+  [220] pusharglistnoret 2 ...................... <tex, pBoarder[1].chick.shaderList[1].texture.name>
+  [222] objcall 233 ............................. tex.add(pBoarder[1].chick.shaderList[1].texture.name)
+  [224] getlocal 1 .............................. <tex>
+  [226] getprop 328 ............................. <pBoarder>
+  [229] pushint8 1 .............................. <1>
+  [231] pusharglist 2 ........................... <pBoarder, 1>
+  [233] objcall 35 .............................. <pBoarder[1]>
+  [235] getchainedprop 315 ...................... <pBoarder[1].chick>
+  [238] pushsymb 281 ............................ <#shaderList>
+  [241] pushint8 2 .............................. <2>
+  [243] pusharglist 3 ........................... <pBoarder[1].chick, #shaderList, 2>
+  [245] objcall 282 ............................. <pBoarder[1].chick.shaderList[2]>
+  [248] getchainedprop 283 ...................... <pBoarder[1].chick.shaderList[2].texture>
+  [251] getobjprop 259 .......................... <pBoarder[1].chick.shaderList[2].texture.name>
+  [254] pusharglistnoret 2 ...................... <tex, pBoarder[1].chick.shaderList[2].texture.name>
+  [256] objcall 233 ............................. tex.add(pBoarder[1].chick.shaderList[2].texture.name)
+  [258] getlocal 1 .............................. <tex>
+  [260] getprop 328 ............................. <pBoarder>
+  [263] pushint8 1 .............................. <1>
+  [265] pusharglist 2 ........................... <pBoarder, 1>
+  [267] objcall 35 .............................. <pBoarder[1]>
+  [269] getchainedprop 90 ....................... <pBoarder[1].board>
+  [271] pushsymb 281 ............................ <#shaderList>
+  [274] pushint8 2 .............................. <2>
+  [276] pusharglist 3 ........................... <pBoarder[1].board, #shaderList, 2>
+  [278] objcall 282 ............................. <pBoarder[1].board.shaderList[2]>
+  [281] getchainedprop 283 ...................... <pBoarder[1].board.shaderList[2].texture>
+  [284] getobjprop 259 .......................... <pBoarder[1].board.shaderList[2].texture.name>
+  [287] pusharglistnoret 2 ...................... <tex, pBoarder[1].board.shaderList[2].texture.name>
+  [289] objcall 233 ............................. tex.add(pBoarder[1].board.shaderList[2].texture.name)
+  [291] pushint8 1 .............................. <1>
+  [293] setlocal 2
+  [295] getlocal 2
+  [297] pushint8 5 .............................. <5>
+  [299] lteq
+  [300] jmpifz [357] ............................ repeat with k = 1 to 5
+  [303] getprop 194 ............................. <w3d>
+  [305] getlocal 1 .............................. <tex>
+  [307] getlocal 2 .............................. <k>
+  [309] pusharglist 2 ........................... <tex, k>
+  [311] objcall 35 .............................. <tex[k]>
+  [313] pusharglistnoret 2 ...................... <w3d, tex[k]>
+  [315] objcall 442 ............................. w3d.deleteTexture(tex[k])
+  [318] getprop 194 ............................. <w3d>
+  [320] getlocal 1 .............................. <tex>
+  [322] getlocal 2 .............................. <k>
+  [324] pusharglist 2 ........................... <tex, k>
+  [326] objcall 35 .............................. <tex[k]>
+  [328] pushsymb 443 ............................ <#fromCastMember>
+  [331] getlocal 0 .............................. <mem>
+  [333] getlocal 2 .............................. <k>
+  [335] pusharglist 2 ........................... <mem, k>
+  [337] objcall 35 .............................. <mem[k]>
+  [339] pusharglist 1 ........................... <mem[k]>
+  [341] extcall 108 ............................. <member(mem[k])>
+  [343] pusharglistnoret 4 ...................... <w3d, tex[k], #fromCastMember, member(mem[k])>
+  [345] objcall 444 ............................. w3d.newTexture(tex[k], #fromCastMember, member(mem[k]))
+  [348] pushint8 1
+  [350] getlocal 2
+  [352] add
+  [353] setlocal 2
+  [355] endrepeat [295]
+  [357] getglobal 86 ............................ <gUser>
+  [359] getobjprop 83 ........................... <gUser.changeFactor>
+  [361] pushint8 4 .............................. <4>
+  [363] eq ...................................... <gUser.changeFactor = 4>
+  [364] getglobal 86 ............................ <gUser>
+  [366] getobjprop 83 ........................... <gUser.changeFactor>
+  [368] pushzero ................................ <0>
+  [369] eq ...................................... <gUser.changeFactor = 0>
+  [370] or ...................................... <(gUser.changeFactor = 4) or (gUser.changeFactor = 0)>
+  [371] jmpifz [382] ............................ if (gUser.changeFactor = 4) or (gUser.changeFactor = 0) then
+  [374] getglobal 86 ............................ <gUser>
+  [376] getobjprop 90 ........................... <gUser.board>
+  [378] pusharglistnoret 1 ...................... <gUser.board>
+  [380] localcall 2 ............................. changeWheels(gUser.board)
+  [382] getglobal 86 ............................ <gUser>
+  [384] getobjprop 83 ........................... <gUser.changeFactor>
+  [386] pushzero ................................ <0>
+  [387] eq ...................................... <gUser.changeFactor = 0>
+  [388] getglobal 86 ............................ <gUser>
+  [390] getobjprop 83 ........................... <gUser.changeFactor>
+  [392] pushint8 1 .............................. <1>
+  [394] eq ...................................... <gUser.changeFactor = 1>
+  [395] or ...................................... <(gUser.changeFactor = 0) or (gUser.changeFactor = 1)>
+  [396] jmpifz [483] ............................ if (gUser.changeFactor = 0) or (gUser.changeFactor = 1) then
+  [399] getglobal 86 ............................ <gUser>
+  [401] getobjprop 87 ........................... <gUser.sex>
+  [403] pushzero ................................ <0>
+  [404] eq ...................................... <gUser.sex = 0>
+  [405] jmpifz [447] ............................ if gUser.sex = 0 then / else
+  [408] getprop 328 ............................. <pBoarder>
+  [411] pushint8 1 .............................. <1>
+  [413] pusharglist 2 ........................... <pBoarder, 1>
+  [415] objcall 35 .............................. <pBoarder[1]>
+  [417] getchainedprop 315 ...................... <pBoarder[1].chick>
+  [420] pushsymb 495 ............................ <#front>
+  [423] setobjprop 266 .......................... pBoarder[1].chick.visibility = #front
+  [426] getprop 328 ............................. <pBoarder>
+  [429] pushint8 1 .............................. <1>
+  [431] pusharglist 2 ........................... <pBoarder, 1>
+  [433] objcall 35 .............................. <pBoarder[1]>
+  [435] getchainedprop 314 ...................... <pBoarder[1].dude>
+  [438] pushsymb 265 ............................ <#none>
+  [441] setobjprop 266 .......................... pBoarder[1].dude.visibility = #none
+  [444] jmp [483]
+  [447] getprop 328 ............................. <pBoarder>
+  [450] pushint8 1 .............................. <1>
+  [452] pusharglist 2 ........................... <pBoarder, 1>
+  [454] objcall 35 .............................. <pBoarder[1]>
+  [456] getchainedprop 315 ...................... <pBoarder[1].chick>
+  [459] pushsymb 265 ............................ <#none>
+  [462] setobjprop 266 .......................... pBoarder[1].chick.visibility = #none
+  [465] getprop 328 ............................. <pBoarder>
+  [468] pushint8 1 .............................. <1>
+  [470] pusharglist 2 ........................... <pBoarder, 1>
+  [472] objcall 35 .............................. <pBoarder[1]>
+  [474] getchainedprop 314 ...................... <pBoarder[1].dude>
+  [477] pushsymb 495 ............................ <#front>
+  [480] setobjprop 266 .......................... pBoarder[1].dude.visibility = #front
+  [483] getglobal 86 ............................ <gUser>
+  [485] getobjprop 83 ........................... <gUser.changeFactor>
+  [487] pushint8 5 .............................. <5>
+  [489] gt ...................................... <gUser.changeFactor > 5>
+  [490] jmpifz [497] ............................ if gUser.changeFactor > 5 then
+  [493] pusharglistnoret 0 ...................... <>
+  [495] localcall 8 ............................. showTrick()
+  [497] getglobal 86 ............................ <gUser>
+  [499] getobjprop 83 ........................... <gUser.changeFactor>
+  [501] pushzero ................................ <0>
+  [502] gt ...................................... <gUser.changeFactor > 0>
+  [503] jmpifz [555] ............................ if gUser.changeFactor > 0 then / else
+  [506] pushsymb 610 ............................ <#spin>
+  [509] pushsymb 690 ............................ <#cu>
+  [512] pushsymb 610 ............................ <#spin>
+  [515] pushsymb 687 ............................ <#wheels>
+  [518] pushsymb 90 ............................. <#board>
+  [520] pushsymb 610 ............................ <#spin>
+  [523] pushsymb 610 ............................ <#spin>
+  [526] pushsymb 610 ............................ <#spin>
+  [529] pushsymb 610 ............................ <#spin>
+  [532] pusharglist 9 ........................... <[#spin, #cu, #spin, #wheels, #board, #spin, #spin, #spin, #spin]>
+  [534] pushlist ................................ <[#spin, #cu, #spin, #wheels, #board, #spin, #spin, #spin, #spin]>
+  [535] setlocal 3 .............................. cam = [#spin, #cu, #spin, #wheels, #board, #spin, #spin, #spin, #spin]
+  [537] getprop 498 ............................. <pCam>
+  [540] getlocal 3 .............................. <cam>
+  [542] getglobal 86 ............................ <gUser>
+  [544] getobjprop 83 ........................... <gUser.changeFactor>
+  [546] pusharglist 2 ........................... <cam, gUser.changeFactor>
+  [548] objcall 35 .............................. <cam[gUser.changeFactor]>
+  [550] setobjprop 44 ........................... pCam.mode = cam[gUser.changeFactor]
+  [552] jmp [563]
+  [555] getprop 498 ............................. <pCam>
+  [558] pushsymb 610 ............................ <#spin>
+  [561] setobjprop 44 ........................... pCam.mode = #spin
+  [563] ret
+end
+
+on enterFrame
+  [  0] pusharglistnoret 0 ...................... <>
+  [  2] localcall 7 ............................. playerControl()
+  [  4] pushint8 1 .............................. <1>
+  [  6] pusharglistnoret 1 ...................... <1>
+  [  8] localcall 9 ............................. setAnim(1)
+  [ 10] pusharglistnoret 0 ...................... <>
+  [ 12] localcall 6 ............................. updateOverlays()
+  [ 14] pusharglistnoret 0 ...................... <>
+  [ 16] localcall 13 ............................ updateCamera()
+  [ 18] ret
+end
+
+on updateOverlays
+  [  0] pusharglistnoret 0 ...................... <>
+  [  2] extcall 107 ............................. return 
+  [  4] getprop 498 ............................. <pCam>
+  [  7] getchainedprop 255 ...................... <pCam.cam>
+  [  9] pushsymb 524 ............................ <#overlay>
+  [ 12] getprop 498 ............................. <pCam>
+  [ 15] getobjprop 615 .......................... <pCam.whiteOL>
+  [ 18] pusharglist 3 ........................... <pCam.cam, #overlay, pCam.whiteOL>
+  [ 20] objcall 282 ............................. <pCam.cam.overlay[pCam.whiteOL]>
+  [ 23] getobjprop 526 .......................... <pCam.cam.overlay[pCam.whiteOL].blend>
+  [ 26] setlocal 0 .............................. o1 = pCam.cam.overlay[pCam.whiteOL].blend
+  [ 28] getlocal 0 .............................. <o1>
+  [ 30] pushint8 2 .............................. <2>
+  [ 32] gt ...................................... <o1 > 2>
+  [ 33] jmpifz [ 46] ............................ if o1 > 2 then / else
+  [ 36] getlocal 0 .............................. <o1>
+  [ 38] pushcons 18 ............................. <0.90000000000000002>
+  [ 40] mul ..................................... <o1 * 0.90000000000000002>
+  [ 41] setlocal 0 .............................. o1 = o1 * 0.90000000000000002
+  [ 43] jmp [ 49]
+  [ 46] pushzero ................................ <0>
+  [ 47] setlocal 0 .............................. o1 = 0
+  [ 49] getprop 498 ............................. <pCam>
+  [ 52] getchainedprop 255 ...................... <pCam.cam>
+  [ 54] pushsymb 524 ............................ <#overlay>
+  [ 57] getprop 498 ............................. <pCam>
+  [ 60] getobjprop 615 .......................... <pCam.whiteOL>
+  [ 63] pusharglist 3 ........................... <pCam.cam, #overlay, pCam.whiteOL>
+  [ 65] objcall 282 ............................. <pCam.cam.overlay[pCam.whiteOL]>
+  [ 68] getlocal 0 .............................. <o1>
+  [ 70] setobjprop 526 .......................... pCam.cam.overlay[pCam.whiteOL].blend = o1
+  [ 73] ret
+end
+
+on playerControl
+  [  0] pusharglistnoret 0 ...................... <>
+  [  2] localcall 10 ............................ checkkeys()
+  [  4] getprop 328 ............................. <pBoarder>
+  [  7] pushint8 1 .............................. <1>
+  [  9] pusharglist 2 ........................... <pBoarder, 1>
+  [ 11] objcall 35 .............................. <pBoarder[1]>
+  [ 13] getobjprop 383 .......................... <pBoarder[1].trickPhase>
+  [ 16] pushsymb 222 ............................ <#hold>
+  [ 18] eq ...................................... <pBoarder[1].trickPhase = #hold>
+  [ 19] jmpifz [ 57] ............................ if pBoarder[1].trickPhase = #hold then / else
+  [ 22] getprop 499 ............................. <leftkey>
+  [ 25] getprop 500 ............................. <rightkey>
+  [ 28] or ...................................... <leftkey or rightkey>
+  [ 29] getprop 501 ............................. <upkey>
+  [ 32] or ...................................... <leftkey or rightkey or upkey>
+  [ 33] getprop 502 ............................. <downkey>
+  [ 36] or ...................................... <leftkey or rightkey or upkey or downkey>
+  [ 37] jmpifz [ 54] ............................ if leftkey or rightkey or upkey or downkey then
+  [ 40] getprop 328 ............................. <pBoarder>
+  [ 43] pushint8 1 .............................. <1>
+  [ 45] pusharglist 2 ........................... <pBoarder, 1>
+  [ 47] objcall 35 .............................. <pBoarder[1]>
+  [ 49] pushsymb 223 ............................ <#release>
+  [ 51] setobjprop 383 .......................... pBoarder[1].trickPhase = #release
+  [ 54] jmp [305]
+  [ 57] getprop 328 ............................. <pBoarder>
+  [ 60] pushint8 1 .............................. <1>
+  [ 62] pusharglist 2 ........................... <pBoarder, 1>
+  [ 64] objcall 35 .............................. <pBoarder[1]>
+  [ 66] getobjprop 383 .......................... <pBoarder[1].trickPhase>
+  [ 69] pushsymb 265 ............................ <#none>
+  [ 72] eq ...................................... <pBoarder[1].trickPhase = #none>
+  [ 73] jmpifz [305] ............................ if pBoarder[1].trickPhase = #none then
+  [ 76] getprop 503 ............................. <trickkey>
+  [ 79] jmpifz [196] ............................ if trickkey then / else
+  [ 82] pushzero ................................ <0>
+  [ 83] setlocal 0 .............................. trickNum = 0
+  [ 85] getprop 499 ............................. <leftkey>
+  [ 88] jmpifz [100] ............................ if leftkey then / else
+  [ 91] getglobal 86 ............................ <gUser>
+  [ 93] getobjprop 94 ........................... <gUser.trickLEFT>
+  [ 95] setlocal 0 .............................. trickNum = gUser.trickLEFT
+  [ 97] jmp [142]
+  [100] getprop 501 ............................. <upkey>
+  [103] jmpifz [115] ............................ if upkey then / else
+  [106] getglobal 86 ............................ <gUser>
+  [108] getobjprop 92 ........................... <gUser.trickUP>
+  [110] setlocal 0 .............................. trickNum = gUser.trickUP
+  [112] jmp [142]
+  [115] getprop 500 ............................. <rightkey>
+  [118] jmpifz [130] ............................ if rightkey then / else
+  [121] getglobal 86 ............................ <gUser>
+  [123] getobjprop 95 ........................... <gUser.trickRIGHT>
+  [125] setlocal 0 .............................. trickNum = gUser.trickRIGHT
+  [127] jmp [142]
+  [130] getprop 502 ............................. <downkey>
+  [133] jmpifz [142] ............................ if downkey then
+  [136] getglobal 86 ............................ <gUser>
+  [138] getobjprop 93 ........................... <gUser.trickDOWN>
+  [140] setlocal 0 .............................. trickNum = gUser.trickDOWN
+  [142] getlocal 0 .............................. <trickNum>
+  [144] pushzero ................................ <0>
+  [145] gt ...................................... <trickNum > 0>
+  [146] jmpifz [193] ............................ if trickNum > 0 then
+  [149] getprop 328 ............................. <pBoarder>
+  [152] pushint8 1 .............................. <1>
+  [154] pusharglist 2 ........................... <pBoarder, 1>
+  [156] objcall 35 .............................. <pBoarder[1]>
+  [158] getlocal 0 .............................. <trickNum>
+  [160] setobjprop 382 .......................... pBoarder[1].trickNum = trickNum
+  [163] getprop 328 ............................. <pBoarder>
+  [166] pushint8 1 .............................. <1>
+  [168] pusharglist 2 ........................... <pBoarder, 1>
+  [170] objcall 35 .............................. <pBoarder[1]>
+  [172] pushsymb 466 ............................ <#start>
+  [175] setobjprop 383 .......................... pBoarder[1].trickPhase = #start
+  [178] getprop 328 ............................. <pBoarder>
+  [181] pushint8 1 .............................. <1>
+  [183] pusharglist 2 ........................... <pBoarder, 1>
+  [185] objcall 35 .............................. <pBoarder[1]>
+  [187] pushsymb 467 ............................ <#trick>
+  [190] setobjprop 313 .......................... pBoarder[1].anim = #trick
+  [193] jmp [305]
+  [196] getprop 504 ............................. <grabkey>
+  [199] jmpifz [305] ............................ if grabkey then
+  [202] pushzero ................................ <0>
+  [203] setlocal 0 .............................. trickNum = 0
+  [205] getprop 499 ............................. <leftkey>
+  [208] jmpifz [218] ............................ if leftkey then / else
+  [211] pushint8 1 .............................. <1>
+  [213] setlocal 0 .............................. trickNum = 1
+  [215] jmp [254]
+  [218] getprop 500 ............................. <rightkey>
+  [221] jmpifz [231] ............................ if rightkey then / else
+  [224] pushint8 2 .............................. <2>
+  [226] setlocal 0 .............................. trickNum = 2
+  [228] jmp [254]
+  [231] getprop 501 ............................. <upkey>
+  [234] jmpifz [244] ............................ if upkey then / else
+  [237] pushint8 3 .............................. <3>
+  [239] setlocal 0 .............................. trickNum = 3
+  [241] jmp [254]
+  [244] getprop 502 ............................. <downkey>
+  [247] jmpifz [254] ............................ if downkey then
+  [250] pushint8 4 .............................. <4>
+  [252] setlocal 0 .............................. trickNum = 4
+  [254] getlocal 0 .............................. <trickNum>
+  [256] pushzero ................................ <0>
+  [257] gt ...................................... <trickNum > 0>
+  [258] jmpifz [305] ............................ if trickNum > 0 then
+  [261] getprop 328 ............................. <pBoarder>
+  [264] pushint8 1 .............................. <1>
+  [266] pusharglist 2 ........................... <pBoarder, 1>
+  [268] objcall 35 .............................. <pBoarder[1]>
+  [270] getlocal 0 .............................. <trickNum>
+  [272] setobjprop 382 .......................... pBoarder[1].trickNum = trickNum
+  [275] getprop 328 ............................. <pBoarder>
+  [278] pushint8 1 .............................. <1>
+  [280] pusharglist 2 ........................... <pBoarder, 1>
+  [282] objcall 35 .............................. <pBoarder[1]>
+  [284] pushsymb 466 ............................ <#start>
+  [287] setobjprop 383 .......................... pBoarder[1].trickPhase = #start
+  [290] getprop 328 ............................. <pBoarder>
+  [293] pushint8 1 .............................. <1>
+  [295] pusharglist 2 ........................... <pBoarder, 1>
+  [297] objcall 35 .............................. <pBoarder[1]>
+  [299] pushsymb 505 ............................ <#grab>
+  [302] setobjprop 313 .......................... pBoarder[1].anim = #grab
+  [305] ret
+end
+
+on showTrick
+  [  0] getprop 328 ............................. <pBoarder>
+  [  3] pushint8 1 .............................. <1>
+  [  5] pusharglist 2 ........................... <pBoarder, 1>
+  [  7] objcall 35 .............................. <pBoarder[1]>
+  [  9] getglobal 86 ............................ <gUser>
+  [ 11] getobjprop 84 ........................... <gUser.showTrick>
+  [ 13] setobjprop 382 .......................... pBoarder[1].trickNum = gUser.showTrick
+  [ 16] getprop 328 ............................. <pBoarder>
+  [ 19] pushint8 1 .............................. <1>
+  [ 21] pusharglist 2 ........................... <pBoarder, 1>
+  [ 23] objcall 35 .............................. <pBoarder[1]>
+  [ 25] pushsymb 466 ............................ <#start>
+  [ 28] setobjprop 383 .......................... pBoarder[1].trickPhase = #start
+  [ 31] getprop 328 ............................. <pBoarder>
+  [ 34] pushint8 1 .............................. <1>
+  [ 36] pusharglist 2 ........................... <pBoarder, 1>
+  [ 38] objcall 35 .............................. <pBoarder[1]>
+  [ 40] pushsymb 467 ............................ <#trick>
+  [ 43] setobjprop 313 .......................... pBoarder[1].anim = #trick
+  [ 46] ret
+end
+
+on setAnim i
+  [  0] getprop 328 ............................. <pBoarder>
+  [  3] getparam 0 .............................. <i>
+  [  5] pusharglist 2 ........................... <pBoarder, i>
+  [  7] objcall 35 .............................. <pBoarder[i]>
+  [  9] getchainedprop 314 ...................... <pBoarder[i].dude>
+  [ 12] getchainedprop 330 ...................... <pBoarder[i].dude.bonesPlayer>
+  [ 15] getobjprop 537 .......................... <pBoarder[i].dude.bonesPlayer.currentTime>
+  [ 18] setlocal 0 .............................. t = pBoarder[i].dude.bonesPlayer.currentTime
+  [ 20] pushfloat32 1.0 ......................... <1.0>
+  [ 25] setlocal 1 .............................. pr = 1.0
+  [ 27] getprop 328 ............................. <pBoarder>
+  [ 30] getparam 0 .............................. <i>
+  [ 32] pusharglist 2 ........................... <pBoarder, i>
+  [ 34] objcall 35 .............................. <pBoarder[i]>
+  [ 36] getobjprop 382 .......................... <pBoarder[i].trickNum>
+  [ 39] setlocal 2 .............................. trickNum = pBoarder[i].trickNum
+  [ 41] getprop 328 ............................. <pBoarder>
+  [ 44] getparam 0 .............................. <i>
+  [ 46] pusharglist 2 ........................... <pBoarder, i>
+  [ 48] objcall 35 .............................. <pBoarder[i]>
+  [ 50] getobjprop 313 .......................... <pBoarder[i].anim>
+  [ 53] pushsymb 381 ............................ <#ride>
+  [ 56] eq ...................................... <pBoarder[i].anim = #ride>
+  [ 57] jmpifz [ 74] ............................ if pBoarder[i].anim = #ride then / else
+  [ 60] getprop 318 ............................. <pAnimFrames>
+  [ 63] getobjprop 320 .......................... <pAnimFrames.default>
+  [ 66] setlocal 0 .............................. t = pAnimFrames.default
+  [ 68] pushzero ................................ <0>
+  [ 69] setlocal 1 .............................. pr = 0
+  [ 71] jmp [548]
+  [ 74] getprop 328 ............................. <pBoarder>
+  [ 77] getparam 0 .............................. <i>
+  [ 79] pusharglist 2 ........................... <pBoarder, i>
+  [ 81] objcall 35 .............................. <pBoarder[i]>
+  [ 83] getobjprop 313 .......................... <pBoarder[i].anim>
+  [ 86] pushsymb 467 ............................ <#trick>
+  [ 89] eq ...................................... <pBoarder[i].anim = #trick>
+  [ 90] jmpifz [239] ............................ if pBoarder[i].anim = #trick then / else
+  [ 93] getprop 328 ............................. <pBoarder>
+  [ 96] getparam 0 .............................. <i>
+  [ 98] pusharglist 2 ........................... <pBoarder, i>
+  [100] objcall 35 .............................. <pBoarder[i]>
+  [102] getobjprop 383 .......................... <pBoarder[i].trickPhase>
+  [105] pushsymb 466 ............................ <#start>
+  [108] eq ...................................... <pBoarder[i].trickPhase = #start>
+  [109] jmpifz [150] ............................ if pBoarder[i].trickPhase = #start then / else
+  [112] getprop 318 ............................. <pAnimFrames>
+  [115] pushsymb 327 ............................ <#tricks>
+  [118] getlocal 2 .............................. <trickNum>
+  [120] pusharglist 3 ........................... <pAnimFrames, #tricks, trickNum>
+  [122] objcall 282 ............................. <pAnimFrames.tricks[trickNum]>
+  [125] pushint8 1 .............................. <1>
+  [127] pusharglist 2 ........................... <pAnimFrames.tricks[trickNum], 1>
+  [129] objcall 35 .............................. <pAnimFrames.tricks[trickNum][1]>
+  [131] setlocal 0 .............................. t = pAnimFrames.tricks[trickNum][1]
+  [133] getprop 328 ............................. <pBoarder>
+  [136] getparam 0 .............................. <i>
+  [138] pusharglist 2 ........................... <pBoarder, i>
+  [140] objcall 35 .............................. <pBoarder[i]>
+  [142] pushsymb 109 ............................ <#play>
+  [144] setobjprop 383 .......................... pBoarder[i].trickPhase = #play
+  [147] jmp [236]
+  [150] getprop 328 ............................. <pBoarder>
+  [153] getparam 0 .............................. <i>
+  [155] pusharglist 2 ........................... <pBoarder, i>
+  [157] objcall 35 .............................. <pBoarder[i]>
+  [159] getobjprop 383 .......................... <pBoarder[i].trickPhase>
+  [162] pushsymb 109 ............................ <#play>
+  [164] eq ...................................... <pBoarder[i].trickPhase = #play>
+  [165] jmpifz [236] ............................ if pBoarder[i].trickPhase = #play then
+  [168] getlocal 0 .............................. <t>
+  [170] getprop 318 ............................. <pAnimFrames>
+  [173] pushsymb 327 ............................ <#tricks>
+  [176] getlocal 2 .............................. <trickNum>
+  [178] pusharglist 3 ........................... <pAnimFrames, #tricks, trickNum>
+  [180] objcall 282 ............................. <pAnimFrames.tricks[trickNum]>
+  [183] pushint8 2 .............................. <2>
+  [185] pusharglist 2 ........................... <pAnimFrames.tricks[trickNum], 2>
+  [187] objcall 35 .............................. <pAnimFrames.tricks[trickNum][2]>
+  [189] gteq .................................... <t >= pAnimFrames.tricks[trickNum][2]>
+  [190] jmpifz [236] ............................ if t >= pAnimFrames.tricks[trickNum][2] then
+  [193] getprop 328 ............................. <pBoarder>
+  [196] getparam 0 .............................. <i>
+  [198] pusharglist 2 ........................... <pBoarder, i>
+  [200] objcall 35 .............................. <pBoarder[i]>
+  [202] pushzero ................................ <0>
+  [203] setobjprop 382 .......................... pBoarder[i].trickNum = 0
+  [206] getprop 328 ............................. <pBoarder>
+  [209] getparam 0 .............................. <i>
+  [211] pusharglist 2 ........................... <pBoarder, i>
+  [213] objcall 35 .............................. <pBoarder[i]>
+  [215] pushsymb 265 ............................ <#none>
+  [218] setobjprop 383 .......................... pBoarder[i].trickPhase = #none
+  [221] getprop 328 ............................. <pBoarder>
+  [224] getparam 0 .............................. <i>
+  [226] pusharglist 2 ........................... <pBoarder, i>
+  [228] objcall 35 .............................. <pBoarder[i]>
+  [230] pushsymb 381 ............................ <#ride>
+  [233] setobjprop 313 .......................... pBoarder[i].anim = #ride
+  [236] jmp [548]
+  [239] getprop 328 ............................. <pBoarder>
+  [242] getparam 0 .............................. <i>
+  [244] pusharglist 2 ........................... <pBoarder, i>
+  [246] objcall 35 .............................. <pBoarder[i]>
+  [248] getobjprop 313 .......................... <pBoarder[i].anim>
+  [251] pushsymb 505 ............................ <#grab>
+  [254] eq ...................................... <pBoarder[i].anim = #grab>
+  [255] jmpifz [548] ............................ if pBoarder[i].anim = #grab then
+  [258] getprop 328 ............................. <pBoarder>
+  [261] getparam 0 .............................. <i>
+  [263] pusharglist 2 ........................... <pBoarder, i>
+  [265] objcall 35 .............................. <pBoarder[i]>
+  [267] getobjprop 383 .......................... <pBoarder[i].trickPhase>
+  [270] pushsymb 466 ............................ <#start>
+  [273] eq ...................................... <pBoarder[i].trickPhase = #start>
+  [274] jmpifz [316] ............................ if pBoarder[i].trickPhase = #start then / else
+  [277] getprop 318 ............................. <pAnimFrames>
+  [280] pushsymb 326 ............................ <#grabs>
+  [283] getlocal 2 .............................. <trickNum>
+  [285] pusharglist 3 ........................... <pAnimFrames, #grabs, trickNum>
+  [287] objcall 282 ............................. <pAnimFrames.grabs[trickNum]>
+  [290] pushint8 1 .............................. <1>
+  [292] pusharglist 2 ........................... <pAnimFrames.grabs[trickNum], 1>
+  [294] objcall 35 .............................. <pAnimFrames.grabs[trickNum][1]>
+  [296] setlocal 0 .............................. t = pAnimFrames.grabs[trickNum][1]
+  [298] getprop 328 ............................. <pBoarder>
+  [301] getparam 0 .............................. <i>
+  [303] pusharglist 2 ........................... <pBoarder, i>
+  [305] objcall 35 .............................. <pBoarder[i]>
+  [307] pushsymb 539 ............................ <#in>
+  [310] setobjprop 383 .......................... pBoarder[i].trickPhase = #in
+  [313] jmp [548]
+  [316] getprop 328 ............................. <pBoarder>
+  [319] getparam 0 .............................. <i>
+  [321] pusharglist 2 ........................... <pBoarder, i>
+  [323] objcall 35 .............................. <pBoarder[i]>
+  [325] getobjprop 383 .......................... <pBoarder[i].trickPhase>
+  [328] pushsymb 539 ............................ <#in>
+  [331] eq ...................................... <pBoarder[i].trickPhase = #in>
+  [332] jmpifz [380] ............................ if pBoarder[i].trickPhase = #in then / else
+  [335] getlocal 0 .............................. <t>
+  [337] getprop 318 ............................. <pAnimFrames>
+  [340] pushsymb 326 ............................ <#grabs>
+  [343] getlocal 2 .............................. <trickNum>
+  [345] pusharglist 3 ........................... <pAnimFrames, #grabs, trickNum>
+  [347] objcall 282 ............................. <pAnimFrames.grabs[trickNum]>
+  [350] pushint8 2 .............................. <2>
+  [352] pusharglist 2 ........................... <pAnimFrames.grabs[trickNum], 2>
+  [354] objcall 35 .............................. <pAnimFrames.grabs[trickNum][2]>
+  [356] gteq .................................... <t >= pAnimFrames.grabs[trickNum][2]>
+  [357] jmpifz [377] ............................ if t >= pAnimFrames.grabs[trickNum][2] then
+  [360] getprop 328 ............................. <pBoarder>
+  [363] getparam 0 .............................. <i>
+  [365] pusharglist 2 ........................... <pBoarder, i>
+  [367] objcall 35 .............................. <pBoarder[i]>
+  [369] pushsymb 222 ............................ <#hold>
+  [371] setobjprop 383 .......................... pBoarder[i].trickPhase = #hold
+  [374] pushzero ................................ <0>
+  [375] setlocal 1 .............................. pr = 0
+  [377] jmp [548]
+  [380] getprop 328 ............................. <pBoarder>
+  [383] getparam 0 .............................. <i>
+  [385] pusharglist 2 ........................... <pBoarder, i>
+  [387] objcall 35 .............................. <pBoarder[i]>
+  [389] getobjprop 383 .......................... <pBoarder[i].trickPhase>
+  [392] pushsymb 222 ............................ <#hold>
+  [394] eq ...................................... <pBoarder[i].trickPhase = #hold>
+  [395] jmpifz [404] ............................ if pBoarder[i].trickPhase = #hold then / else
+  [398] pushzero ................................ <0>
+  [399] setlocal 1 .............................. pr = 0
+  [401] jmp [548]
+  [404] getprop 328 ............................. <pBoarder>
+  [407] getparam 0 .............................. <i>
+  [409] pusharglist 2 ........................... <pBoarder, i>
+  [411] objcall 35 .............................. <pBoarder[i]>
+  [413] getobjprop 383 .......................... <pBoarder[i].trickPhase>
+  [416] pushsymb 223 ............................ <#release>
+  [418] eq ...................................... <pBoarder[i].trickPhase = #release>
+  [419] jmpifz [461] ............................ if pBoarder[i].trickPhase = #release then / else
+  [422] getprop 318 ............................. <pAnimFrames>
+  [425] pushsymb 326 ............................ <#grabs>
+  [428] getlocal 2 .............................. <trickNum>
+  [430] pusharglist 3 ........................... <pAnimFrames, #grabs, trickNum>
+  [432] objcall 282 ............................. <pAnimFrames.grabs[trickNum]>
+  [435] pushint8 3 .............................. <3>
+  [437] pusharglist 2 ........................... <pAnimFrames.grabs[trickNum], 3>
+  [439] objcall 35 .............................. <pAnimFrames.grabs[trickNum][3]>
+  [441] setlocal 0 .............................. t = pAnimFrames.grabs[trickNum][3]
+  [443] getprop 328 ............................. <pBoarder>
+  [446] getparam 0 .............................. <i>
+  [448] pusharglist 2 ........................... <pBoarder, i>
+  [450] objcall 35 .............................. <pBoarder[i]>
+  [452] pushsymb 540 ............................ <#out>
+  [455] setobjprop 383 .......................... pBoarder[i].trickPhase = #out
+  [458] jmp [548]
+  [461] getprop 328 ............................. <pBoarder>
+  [464] getparam 0 .............................. <i>
+  [466] pusharglist 2 ........................... <pBoarder, i>
+  [468] objcall 35 .............................. <pBoarder[i]>
+  [470] getobjprop 383 .......................... <pBoarder[i].trickPhase>
+  [473] pushsymb 540 ............................ <#out>
+  [476] eq ...................................... <pBoarder[i].trickPhase = #out>
+  [477] jmpifz [548] ............................ if pBoarder[i].trickPhase = #out then
+  [480] getlocal 0 .............................. <t>
+  [482] getprop 318 ............................. <pAnimFrames>
+  [485] pushsymb 326 ............................ <#grabs>
+  [488] getlocal 2 .............................. <trickNum>
+  [490] pusharglist 3 ........................... <pAnimFrames, #grabs, trickNum>
+  [492] objcall 282 ............................. <pAnimFrames.grabs[trickNum]>
+  [495] pushint8 4 .............................. <4>
+  [497] pusharglist 2 ........................... <pAnimFrames.grabs[trickNum], 4>
+  [499] objcall 35 .............................. <pAnimFrames.grabs[trickNum][4]>
+  [501] gteq .................................... <t >= pAnimFrames.grabs[trickNum][4]>
+  [502] jmpifz [548] ............................ if t >= pAnimFrames.grabs[trickNum][4] then
+  [505] getprop 328 ............................. <pBoarder>
+  [508] getparam 0 .............................. <i>
+  [510] pusharglist 2 ........................... <pBoarder, i>
+  [512] objcall 35 .............................. <pBoarder[i]>
+  [514] pushzero ................................ <0>
+  [515] setobjprop 382 .......................... pBoarder[i].trickNum = 0
+  [518] getprop 328 ............................. <pBoarder>
+  [521] getparam 0 .............................. <i>
+  [523] pusharglist 2 ........................... <pBoarder, i>
+  [525] objcall 35 .............................. <pBoarder[i]>
+  [527] pushsymb 265 ............................ <#none>
+  [530] setobjprop 383 .......................... pBoarder[i].trickPhase = #none
+  [533] getprop 328 ............................. <pBoarder>
+  [536] getparam 0 .............................. <i>
+  [538] pusharglist 2 ........................... <pBoarder, i>
+  [540] objcall 35 .............................. <pBoarder[i]>
+  [542] pushsymb 381 ............................ <#ride>
+  [545] setobjprop 313 .......................... pBoarder[i].anim = #ride
+  [548] getlocal 1 .............................. <pr>
+  [550] getprop 328 ............................. <pBoarder>
+  [553] getparam 0 .............................. <i>
+  [555] pusharglist 2 ........................... <pBoarder, i>
+  [557] objcall 35 .............................. <pBoarder[i]>
+  [559] getobjprop 388 .......................... <pBoarder[i].bpRate>
+  [562] mul ..................................... <pr * pBoarder[i].bpRate>
+  [563] setlocal 1 .............................. pr = pr * pBoarder[i].bpRate
+  [565] getprop 328 ............................. <pBoarder>
+  [568] getparam 0 .............................. <i>
+  [570] pusharglist 2 ........................... <pBoarder, i>
+  [572] objcall 35 .............................. <pBoarder[i]>
+  [574] getchainedprop 314 ...................... <pBoarder[i].dude>
+  [577] getchainedprop 330 ...................... <pBoarder[i].dude.bonesPlayer>
+  [580] getlocal 1 .............................. <pr>
+  [582] setobjprop 332 .......................... pBoarder[i].dude.bonesPlayer.playRate = pr
+  [585] getprop 328 ............................. <pBoarder>
+  [588] getparam 0 .............................. <i>
+  [590] pusharglist 2 ........................... <pBoarder, i>
+  [592] objcall 35 .............................. <pBoarder[i]>
+  [594] getchainedprop 315 ...................... <pBoarder[i].chick>
+  [597] getchainedprop 330 ...................... <pBoarder[i].chick.bonesPlayer>
+  [600] getlocal 1 .............................. <pr>
+  [602] setobjprop 332 .......................... pBoarder[i].chick.bonesPlayer.playRate = pr
+  [605] getprop 328 ............................. <pBoarder>
+  [608] getparam 0 .............................. <i>
+  [610] pusharglist 2 ........................... <pBoarder, i>
+  [612] objcall 35 .............................. <pBoarder[i]>
+  [614] getchainedprop 90 ....................... <pBoarder[i].board>
+  [616] getchainedprop 333 ...................... <pBoarder[i].board.keyframePlayer>
+  [619] getlocal 1 .............................. <pr>
+  [621] setobjprop 332 .......................... pBoarder[i].board.keyframePlayer.playRate = pr
+  [624] getprop 328 ............................. <pBoarder>
+  [627] getparam 0 .............................. <i>
+  [629] pusharglist 2 ........................... <pBoarder, i>
+  [631] objcall 35 .............................. <pBoarder[i]>
+  [633] getchainedprop 314 ...................... <pBoarder[i].dude>
+  [636] getchainedprop 330 ...................... <pBoarder[i].dude.bonesPlayer>
+  [639] getlocal 0 .............................. <t>
+  [641] setobjprop 537 .......................... pBoarder[i].dude.bonesPlayer.currentTime = t
+  [644] getprop 328 ............................. <pBoarder>
+  [647] getparam 0 .............................. <i>
+  [649] pusharglist 2 ........................... <pBoarder, i>
+  [651] objcall 35 .............................. <pBoarder[i]>
+  [653] getchainedprop 315 ...................... <pBoarder[i].chick>
+  [656] getchainedprop 330 ...................... <pBoarder[i].chick.bonesPlayer>
+  [659] getlocal 0 .............................. <t>
+  [661] setobjprop 537 .......................... pBoarder[i].chick.bonesPlayer.currentTime = t
+  [664] getprop 328 ............................. <pBoarder>
+  [667] getparam 0 .............................. <i>
+  [669] pusharglist 2 ........................... <pBoarder, i>
+  [671] objcall 35 .............................. <pBoarder[i]>
+  [673] getchainedprop 90 ....................... <pBoarder[i].board>
+  [675] getchainedprop 333 ...................... <pBoarder[i].board.keyframePlayer>
+  [678] getlocal 0 .............................. <t>
+  [680] setobjprop 537 .......................... pBoarder[i].board.keyframePlayer.currentTime = t
+  [683] pushint8 1 .............................. <1>
+  [685] setlocal 3
+  [687] getlocal 3
+  [689] pushint8 8 .............................. <8>
+  [691] lteq
+  [692] jmpifz [762] ............................ repeat with k = 1 to 8
+  [695] getprop 328 ............................. <pBoarder>
+  [698] getparam 0 .............................. <i>
+  [700] pusharglist 2 ........................... <pBoarder, i>
+  [702] objcall 35 .............................. <pBoarder[i]>
+  [704] getchainedprop 90 ....................... <pBoarder[i].board>
+  [706] pushsymb 334 ............................ <#child>
+  [709] getlocal 3 .............................. <k>
+  [711] pusharglist 3 ........................... <pBoarder[i].board, #child, k>
+  [713] objcall 282 ............................. <pBoarder[i].board.child[k]>
+  [716] getchainedprop 333 ...................... <pBoarder[i].board.child[k].keyframePlayer>
+  [719] getlocal 1 .............................. <pr>
+  [721] setobjprop 332 .......................... pBoarder[i].board.child[k].keyframePlayer.playRate = pr
+  [724] getprop 328 ............................. <pBoarder>
+  [727] getparam 0 .............................. <i>
+  [729] pusharglist 2 ........................... <pBoarder, i>
+  [731] objcall 35 .............................. <pBoarder[i]>
+  [733] getchainedprop 90 ....................... <pBoarder[i].board>
+  [735] pushsymb 334 ............................ <#child>
+  [738] getlocal 3 .............................. <k>
+  [740] pusharglist 3 ........................... <pBoarder[i].board, #child, k>
+  [742] objcall 282 ............................. <pBoarder[i].board.child[k]>
+  [745] getchainedprop 333 ...................... <pBoarder[i].board.child[k].keyframePlayer>
+  [748] getlocal 0 .............................. <t>
+  [750] setobjprop 537 .......................... pBoarder[i].board.child[k].keyframePlayer.currentTime = t
+  [753] pushint8 1
+  [755] getlocal 3
+  [757] add
+  [758] setlocal 3
+  [760] endrepeat [687]
+  [762] ret
+end
+
+on checkkeys
+  [  0] pushzero ................................ <0>
+  [  1] setprop 499 ............................. leftkey = 0
+  [  4] pushzero ................................ <0>
+  [  5] setprop 500 ............................. rightkey = 0
+  [  8] pushzero ................................ <0>
+  [  9] setprop 502 ............................. downkey = 0
+  [ 12] pushzero ................................ <0>
+  [ 13] setprop 501 ............................. upkey = 0
+  [ 16] pushzero ................................ <0>
+  [ 17] setprop 504 ............................. grabkey = 0
+  [ 20] pushzero ................................ <0>
+  [ 21] setprop 503 ............................. trickkey = 0
+  [ 24] pushint8 123 ............................ <123>
+  [ 26] pusharglist 1 ........................... <123>
+  [ 28] extcall 600 ............................. <keyPressed(123)>
+  [ 31] jmpifz [ 39] ............................ if keyPressed(123) then
+  [ 34] pushint8 1 .............................. <1>
+  [ 36] setprop 499 ............................. leftkey = 1
+  [ 39] pushint8 124 ............................ <124>
+  [ 41] pusharglist 1 ........................... <124>
+  [ 43] extcall 600 ............................. <keyPressed(124)>
+  [ 46] jmpifz [ 54] ............................ if keyPressed(124) then
+  [ 49] pushint8 1 .............................. <1>
+  [ 51] setprop 500 ............................. rightkey = 1
+  [ 54] pushint8 125 ............................ <125>
+  [ 56] pusharglist 1 ........................... <125>
+  [ 58] extcall 600 ............................. <keyPressed(125)>
+  [ 61] jmpifz [ 69] ............................ if keyPressed(125) then
+  [ 64] pushint8 1 .............................. <1>
+  [ 66] setprop 502 ............................. downkey = 1
+  [ 69] pushint8 126 ............................ <126>
+  [ 71] pusharglist 1 ........................... <126>
+  [ 73] extcall 600 ............................. <keyPressed(126)>
+  [ 76] jmpifz [ 84] ............................ if keyPressed(126) then
+  [ 79] pushint8 1 .............................. <1>
+  [ 81] setprop 501 ............................. upkey = 1
+  [ 84] pushcons 19 ............................. <"z">
+  [ 86] pusharglist 1 ........................... <"z">
+  [ 88] extcall 600 ............................. <keyPressed("z")>
+  [ 91] jmpifz [ 99] ............................ if keyPressed("z") then
+  [ 94] pushint8 1 .............................. <1>
+  [ 96] setprop 504 ............................. grabkey = 1
+  [ 99] pushcons 20 ............................. <"x">
+  [101] pusharglist 1 ........................... <"x">
+  [103] extcall 600 ............................. <keyPressed("x")>
+  [106] jmpifz [114] ............................ if keyPressed("x") then
+  [109] pushint8 1 .............................. <1>
+  [111] setprop 503 ............................. trickkey = 1
+  [114] ret
+end
+
+on keyHit
+  [  0] ret
+end
+
+on setupCamera
+  [  0] pushsymb 255 ............................ <#cam>
+  [  2] getprop 194 ............................. <w3d>
+  [  4] pushsymb 605 ............................ <#camera>
+  [  7] pushint8 1 .............................. <1>
+  [  9] pusharglist 3 ........................... <w3d, #camera, 1>
+  [ 11] objcall 232 ............................. <w3d.camera[1]>
+  [ 13] pushsymb 606 ............................ <#dummy>
+  [ 16] getprop 194 ............................. <w3d>
+  [ 18] pushcons 21 ............................. <"dummyCam">
+  [ 20] pusharglist 2 ........................... <w3d, "dummyCam">
+  [ 22] objcall 335 ............................. <w3d.newModel("dummyCam")>
+  [ 25] pushsymb 608 ............................ <#buffer>
+  [ 28] pushint8 100 ............................ <100>
+  [ 30] pushsymb 609 ............................ <#bufferDefault>
+  [ 33] pushint8 50 ............................. <50>
+  [ 35] pushsymb 610 ............................ <#spin>
+  [ 38] pushzero ................................ <0>
+  [ 39] pushsymb 607 ............................ <#target>
+  [ 42] getprop 194 ............................. <w3d>
+  [ 44] pushcons 22 ............................. <"cameraTarget">
+  [ 46] pusharglist 2 ........................... <w3d, "cameraTarget">
+  [ 48] objcall 335 ............................. <w3d.newModel("cameraTarget")>
+  [ 51] pushsymb 611 ............................ <#targetObject>
+  [ 54] getprop 328 ............................. <pBoarder>
+  [ 57] pushint8 1 .............................. <1>
+  [ 59] pusharglist 2 ........................... <pBoarder, 1>
+  [ 61] objcall 35 .............................. <pBoarder[1]>
+  [ 63] getobjprop 314 .......................... <pBoarder[1].dude>
+  [ 66] pushsymb 612 ............................ <#followObject>
+  [ 69] getprop 328 ............................. <pBoarder>
+  [ 72] pushint8 1 .............................. <1>
+  [ 74] pusharglist 2 ........................... <pBoarder, 1>
+  [ 76] objcall 35 .............................. <pBoarder[1]>
+  [ 78] getobjprop 314 .......................... <pBoarder[1].dude>
+  [ 81] pushsymb 44 ............................. <#mode>
+  [ 83] pushsymb 610 ............................ <#spin>
+  [ 86] pushsymb 613 ............................ <#modeStart>
+  [ 89] pushzero ................................ <0>
+  [ 90] pushsymb 614 ............................ <#modeTime>
+  [ 93] pushzero ................................ <0>
+  [ 94] pusharglist 22 .......................... <[#cam: w3d.camera[1], #dummy: w3d.newModel("dummyCam"), #buffer: 100, #bufferDefault: 50, #spin: 0, #target: w3d.newModel("cameraTarget"), #targetObject: pBoarder[1].dude, #followObject: pBoarder[1].dude, #mode: #spin, #modeStart: 0, #modeTime: 0]>
+  [ 96] pushproplist ............................ <[#cam: w3d.camera[1], #dummy: w3d.newModel("dummyCam"), #buffer: 100, #bufferDefault: 50, #spin: 0, #target: w3d.newModel("cameraTarget"), #targetObject: pBoarder[1].dude, #followObject: pBoarder[1].dude, #mode: #spin, #modeStart: 0, #modeTime: 0]>
+  [ 97] setprop 498 ............................. pCam = [#cam: w3d.camera[1], #dummy: w3d.newModel("dummyCam"), #buffer: 100, #bufferDefault: 50, #spin: 0, #target: w3d.newModel("cameraTarget"), #targetObject: pBoarder[1].dude, #followObject: pBoarder[1].dude, #mode: #spin, #modeStart: 0, #modeTime: 0]
+  [100] getprop 498 ............................. <pCam>
+  [103] getchainedprop 255 ...................... <pCam.cam>
+  [105] pushint8 70 ............................. <70>
+  [107] setobjprop 618 .......................... pCam.cam.fieldOfView = 70
+  [110] getprop 498 ............................. <pCam>
+  [113] getchainedprop 255 ...................... <pCam.cam>
+  [115] pushint8 60 ............................. <60>
+  [117] setobjprop 619 .......................... pCam.cam.hither = 60
+  [120] getprop 498 ............................. <pCam>
+  [123] getchainedprop 255 ...................... <pCam.cam>
+  [125] pushint32 2500000 ....................... <2500000>
+  [130] setobjprop 620 .......................... pCam.cam.yon = 2500000
+  [133] getprop 194 ............................. <w3d>
+  [135] pushcons 23 ............................. <"roundBG">
+  [137] pushsymb 443 ............................ <#fromCastMember>
+  [140] pushcons 24 ............................. <"ChooserBG">
+  [142] pusharglist 1 ........................... <"ChooserBG">
+  [144] extcall 108 ............................. <member("ChooserBG")>
+  [146] pusharglist 4 ........................... <w3d, "roundBG", #fromCastMember, member("ChooserBG")>
+  [148] objcall 444 ............................. <w3d.newTexture("roundBG", #fromCastMember, member("ChooserBG"))>
+  [151] setlocal 0 .............................. col = w3d.newTexture("roundBG", #fromCastMember, member("ChooserBG"))
+  [153] getprop 498 ............................. <pCam>
+  [156] getchainedprop 255 ...................... <pCam.cam>
+  [158] getlocal 0 .............................. <col>
+  [160] pushzero ................................ <0>
+  [161] pushzero ................................ <0>
+  [162] pusharglist 2 ........................... <0, 0>
+  [164] extcall 621 ............................. <point(0, 0)>
+  [167] pushzero ................................ <0>
+  [168] pusharglistnoret 4 ...................... <pCam.cam, col, point(0, 0), 0>
+  [170] objcall 691 ............................. pCam.cam.addBackdrop(col, point(0, 0), 0)
+  [173] getprop 498 ............................. <pCam>
+  [176] getchainedprop 255 ...................... <pCam.cam>
+  [178] pushsymb 692 ............................ <#backdrop>
+  [181] pushint8 1 .............................. <1>
+  [183] pusharglist 3 ........................... <pCam.cam, #backdrop, 1>
+  [185] objcall 282 ............................. <pCam.cam.backdrop[1]>
+  [188] pushcons 25 ............................. <1.29000000000000004>
+  [190] setobjprop 422 .......................... pCam.cam.backdrop[1].scale = 1.29000000000000004
+  [193] getprop 194 ............................. <w3d>
+  [195] pushcons 26 ............................. <"roundOverlay">
+  [197] pushsymb 443 ............................ <#fromCastMember>
+  [200] pushcons 27 ............................. <"ChooserOverlay">
+  [202] pusharglist 1 ........................... <"ChooserOverlay">
+  [204] extcall 108 ............................. <member("ChooserOverlay")>
+  [206] pusharglist 4 ........................... <w3d, "roundOverlay", #fromCastMember, member("ChooserOverlay")>
+  [208] objcall 444 ............................. <w3d.newTexture("roundOverlay", #fromCastMember, member("ChooserOverlay"))>
+  [211] setlocal 0 .............................. col = w3d.newTexture("roundOverlay", #fromCastMember, member("ChooserOverlay"))
+  [213] getprop 498 ............................. <pCam>
+  [216] getchainedprop 255 ...................... <pCam.cam>
+  [218] getlocal 0 .............................. <col>
+  [220] pushzero ................................ <0>
+  [221] pushzero ................................ <0>
+  [222] pusharglist 2 ........................... <0, 0>
+  [224] extcall 621 ............................. <point(0, 0)>
+  [227] pushzero ................................ <0>
+  [228] pusharglistnoret 4 ...................... <pCam.cam, col, point(0, 0), 0>
+  [230] objcall 622 ............................. pCam.cam.addOverlay(col, point(0, 0), 0)
+  [233] getprop 498 ............................. <pCam>
+  [236] getchainedprop 255 ...................... <pCam.cam>
+  [238] pushsymb 524 ............................ <#overlay>
+  [241] pushint8 1 .............................. <1>
+  [243] pusharglist 3 ........................... <pCam.cam, #overlay, 1>
+  [245] objcall 282 ............................. <pCam.cam.overlay[1]>
+  [248] pushcons 28 ............................. <1.28000000000000003>
+  [250] setobjprop 422 .......................... pCam.cam.overlay[1].scale = 1.28000000000000003
+  [253] getprop 498 ............................. <pCam>
+  [256] getchainedprop 255 ...................... <pCam.cam>
+  [258] pushsymb 524 ............................ <#overlay>
+  [261] pushint8 1 .............................. <1>
+  [263] pusharglist 3 ........................... <pCam.cam, #overlay, 1>
+  [265] objcall 282 ............................. <pCam.cam.overlay[1]>
+  [268] pushint8 100 ............................ <100>
+  [270] setobjprop 526 .......................... pCam.cam.overlay[1].blend = 100
+  [273] getprop 194 ............................. <w3d>
+  [275] pushcons 29 ............................. <"lockOverlay">
+  [277] pushsymb 443 ............................ <#fromCastMember>
+  [280] pushcons 30 ............................. <"ChooserHoleLocked">
+  [282] pusharglist 1 ........................... <"ChooserHoleLocked">
+  [284] extcall 108 ............................. <member("ChooserHoleLocked")>
+  [286] pusharglist 4 ........................... <w3d, "lockOverlay", #fromCastMember, member("ChooserHoleLocked")>
+  [288] objcall 444 ............................. <w3d.newTexture("lockOverlay", #fromCastMember, member("ChooserHoleLocked"))>
+  [291] setlocal 0 .............................. col = w3d.newTexture("lockOverlay", #fromCastMember, member("ChooserHoleLocked"))
+  [293] getprop 498 ............................. <pCam>
+  [296] getchainedprop 255 ...................... <pCam.cam>
+  [298] getlocal 0 .............................. <col>
+  [300] pushzero ................................ <0>
+  [301] pushzero ................................ <0>
+  [302] pusharglist 2 ........................... <0, 0>
+  [304] extcall 621 ............................. <point(0, 0)>
+  [307] pushzero ................................ <0>
+  [308] pusharglistnoret 4 ...................... <pCam.cam, col, point(0, 0), 0>
+  [310] objcall 622 ............................. pCam.cam.addOverlay(col, point(0, 0), 0)
+  [313] getprop 498 ............................. <pCam>
+  [316] getchainedprop 255 ...................... <pCam.cam>
+  [318] pushsymb 524 ............................ <#overlay>
+  [321] pushint8 2 .............................. <2>
+  [323] pusharglist 3 ........................... <pCam.cam, #overlay, 2>
+  [325] objcall 282 ............................. <pCam.cam.overlay[2]>
+  [328] pushcons 28 ............................. <1.28000000000000003>
+  [330] setobjprop 422 .......................... pCam.cam.overlay[2].scale = 1.28000000000000003
+  [333] getprop 498 ............................. <pCam>
+  [336] getchainedprop 255 ...................... <pCam.cam>
+  [338] pushsymb 524 ............................ <#overlay>
+  [341] pushint8 2 .............................. <2>
+  [343] pusharglist 3 ........................... <pCam.cam, #overlay, 2>
+  [345] objcall 282 ............................. <pCam.cam.overlay[2]>
+  [348] pushzero ................................ <0>
+  [349] setobjprop 526 .......................... pCam.cam.overlay[2].blend = 0
+  [352] ret
+end
+
+on updateCamera
+  [  0] getmovieprop 210 ........................ <the milliSeconds>
+  [  2] getprop 498 ............................. <pCam>
+  [  5] getobjprop 613 .......................... <pCam.modeStart>
+  [  8] sub ..................................... <the milliSeconds - pCam.modeStart>
+  [  9] setlocal 0 .............................. t = the milliSeconds - pCam.modeStart
+  [ 11] getprop 498 ............................. <pCam>
+  [ 14] getchainedprop 606 ...................... <pCam.dummy>
+  [ 17] getprop 498 ............................. <pCam>
+  [ 20] getchainedprop 612 ...................... <pCam.followObject>
+  [ 23] pusharglist 1 ........................... <pCam.followObject>
+  [ 25] objcall 329 ............................. <pCam.followObject.getWorldTransform()>
+  [ 28] setobjprop 284 .......................... pCam.dummy.transform = pCam.followObject.getWorldTransform()
+  [ 31] getprop 498 ............................. <pCam>
+  [ 34] getchainedprop 607 ...................... <pCam.target>
+  [ 37] getprop 498 ............................. <pCam>
+  [ 40] getchainedprop 611 ...................... <pCam.targetObject>
+  [ 43] pusharglist 1 ........................... <pCam.targetObject>
+  [ 45] objcall 329 ............................. <pCam.targetObject.getWorldTransform()>
+  [ 48] setobjprop 284 .......................... pCam.target.transform = pCam.targetObject.getWorldTransform()
+  [ 51] getprop 498 ............................. <pCam>
+  [ 54] getobjprop 44 ........................... <pCam.mode>
+  [ 56] pushsymb 693 ............................ <#locked>
+  [ 59] eq ...................................... <pCam.mode = #locked>
+  [ 60] jmpifz [103] ............................ if pCam.mode = #locked then / else
+  [ 63] getprop 498 ............................. <pCam>
+  [ 66] getchainedprop 606 ...................... <pCam.dummy>
+  [ 69] pushint16 150 ........................... <150>
+  [ 72] pushint16 200 ........................... <200>
+  [ 75] pushint16 750 ........................... <750>
+  [ 78] inv ..................................... <-750>
+  [ 79] pusharglistnoret 4 ...................... <pCam.dummy, 150, 200, -750>
+  [ 81] objcall 286 ............................. pCam.dummy.translate(150, 200, -750)
+  [ 84] getprop 498 ............................. <pCam>
+  [ 87] getchainedprop 607 ...................... <pCam.target>
+  [ 90] pushzero ................................ <0>
+  [ 91] pushint16 300 ........................... <300>
+  [ 94] pushzero ................................ <0>
+  [ 95] pusharglistnoret 4 ...................... <pCam.target, 0, 300, 0>
+  [ 97] objcall 286 ............................. pCam.target.translate(0, 300, 0)
+  [100] jmp [359]
+  [103] getprop 498 ............................. <pCam>
+  [106] getobjprop 44 ........................... <pCam.mode>
+  [108] pushsymb 610 ............................ <#spin>
+  [111] eq ...................................... <pCam.mode = #spin>
+  [112] jmpifz [203] ............................ if pCam.mode = #spin then / else
+  [115] getprop 498 ............................. <pCam>
+  [118] getchainedprop 606 ...................... <pCam.dummy>
+  [121] pushzero ................................ <0>
+  [122] pushint16 200 ........................... <200>
+  [125] pushint16 700 ........................... <700>
+  [128] pusharglistnoret 4 ...................... <pCam.dummy, 0, 200, 700>
+  [130] objcall 286 ............................. pCam.dummy.translate(0, 200, 700)
+  [133] getprop 498 ............................. <pCam>
+  [136] getchainedprop 607 ...................... <pCam.target>
+  [139] pushzero ................................ <0>
+  [140] pushint16 300 ........................... <300>
+  [143] pushzero ................................ <0>
+  [144] pusharglistnoret 4 ...................... <pCam.target, 0, 300, 0>
+  [146] objcall 286 ............................. pCam.target.translate(0, 300, 0)
+  [149] getprop 498 ............................. <pCam>
+  [152] getchainedprop 606 ...................... <pCam.dummy>
+  [155] getprop 498 ............................. <pCam>
+  [158] getchainedprop 607 ...................... <pCam.target>
+  [161] getobjprop 250 .......................... <pCam.target.worldPosition>
+  [163] pushzero ................................ <0>
+  [164] pushint8 1 .............................. <1>
+  [166] pushzero ................................ <0>
+  [167] pusharglist 3 ........................... <0, 1, 0>
+  [169] extcall 201 ............................. <vector(0, 1, 0)>
+  [171] getprop 498 ............................. <pCam>
+  [174] getobjprop 610 .......................... <pCam.spin>
+  [177] pushsymb 625 ............................ <#world>
+  [180] pusharglistnoret 5 ...................... <pCam.dummy, pCam.target.worldPosition, vector(0, 1, 0), pCam.spin, #world>
+  [182] objcall 550 ............................. pCam.dummy.rotate(pCam.target.worldPosition, vector(0, 1, 0), pCam.spin, #world)
+  [185] getprop 498 ............................. <pCam>
+  [188] getprop 498 ............................. <pCam>
+  [191] getobjprop 610 .......................... <pCam.spin>
+  [194] pushint8 2 .............................. <2>
+  [196] add ..................................... <pCam.spin + 2>
+  [197] setobjprop 610 .......................... pCam.spin = pCam.spin + 2
+  [200] jmp [359]
+  [203] getprop 498 ............................. <pCam>
+  [206] getobjprop 44 ........................... <pCam.mode>
+  [208] pushsymb 690 ............................ <#cu>
+  [211] eq ...................................... <pCam.mode = #cu>
+  [212] jmpifz [257] ............................ if pCam.mode = #cu then / else
+  [215] getprop 498 ............................. <pCam>
+  [218] getchainedprop 606 ...................... <pCam.dummy>
+  [221] pushint8 100 ............................ <100>
+  [223] inv ..................................... <-100>
+  [224] pushint16 500 ........................... <500>
+  [227] pushint16 200 ........................... <200>
+  [230] inv ..................................... <-200>
+  [231] pusharglistnoret 4 ...................... <pCam.dummy, -100, 500, -200>
+  [233] objcall 286 ............................. pCam.dummy.translate(-100, 500, -200)
+  [236] getprop 498 ............................. <pCam>
+  [239] getchainedprop 607 ...................... <pCam.target>
+  [242] pushint8 40 ............................. <40>
+  [244] inv ..................................... <-40>
+  [245] pushint16 580 ........................... <580>
+  [248] pushzero ................................ <0>
+  [249] pusharglistnoret 4 ...................... <pCam.target, -40, 580, 0>
+  [251] objcall 286 ............................. pCam.target.translate(-40, 580, 0)
+  [254] jmp [359]
+  [257] getprop 498 ............................. <pCam>
+  [260] getobjprop 44 ........................... <pCam.mode>
+  [262] pushsymb 90 ............................. <#board>
+  [264] eq ...................................... <pCam.mode = #board>
+  [265] jmpifz [310] ............................ if pCam.mode = #board then / else
+  [268] getprop 498 ............................. <pCam>
+  [271] getchainedprop 606 ...................... <pCam.dummy>
+  [274] pushint16 250 ........................... <250>
+  [277] inv ..................................... <-250>
+  [278] pushint16 350 ........................... <350>
+  [281] inv ..................................... <-350>
+  [282] pushint16 200 ........................... <200>
+  [285] inv ..................................... <-200>
+  [286] pusharglistnoret 4 ...................... <pCam.dummy, -250, -350, -200>
+  [288] objcall 286 ............................. pCam.dummy.translate(-250, -350, -200)
+  [291] getprop 498 ............................. <pCam>
+  [294] getchainedprop 607 ...................... <pCam.target>
+  [297] pushzero ................................ <0>
+  [298] pushint16 200 ........................... <200>
+  [301] pushzero ................................ <0>
+  [302] pusharglistnoret 4 ...................... <pCam.target, 0, 200, 0>
+  [304] objcall 286 ............................. pCam.target.translate(0, 200, 0)
+  [307] jmp [359]
+  [310] getprop 498 ............................. <pCam>
+  [313] getobjprop 44 ........................... <pCam.mode>
+  [315] pushsymb 687 ............................ <#wheels>
+  [318] eq ...................................... <pCam.mode = #wheels>
+  [319] jmpifz [359] ............................ if pCam.mode = #wheels then
+  [322] getprop 498 ............................. <pCam>
+  [325] getchainedprop 606 ...................... <pCam.dummy>
+  [328] pushint16 450 ........................... <450>
+  [331] inv ..................................... <-450>
+  [332] pushint8 50 ............................. <50>
+  [334] inv ..................................... <-50>
+  [335] pushint16 250 ........................... <250>
+  [338] inv ..................................... <-250>
+  [339] pusharglistnoret 4 ...................... <pCam.dummy, -450, -50, -250>
+  [341] objcall 286 ............................. pCam.dummy.translate(-450, -50, -250)
+  [344] getprop 498 ............................. <pCam>
+  [347] getchainedprop 607 ...................... <pCam.target>
+  [350] pushzero ................................ <0>
+  [351] pushint8 50 ............................. <50>
+  [353] pushzero ................................ <0>
+  [354] pusharglistnoret 4 ...................... <pCam.target, 0, 50, 0>
+  [356] objcall 286 ............................. pCam.target.translate(0, 50, 0)
+  [359] getprop 498 ............................. <pCam>
+  [362] getchainedprop 255 ...................... <pCam.cam>
+  [364] getchainedprop 284 ...................... <pCam.cam.transform>
+  [367] getprop 498 ............................. <pCam>
+  [370] getchainedprop 606 ...................... <pCam.dummy>
+  [373] getobjprop 284 .......................... <pCam.dummy.transform>
+  [376] getprop 498 ............................. <pCam>
+  [379] getobjprop 608 .......................... <pCam.buffer>
+  [382] pusharglistnoret 3 ...................... <pCam.cam.transform, pCam.dummy.transform, pCam.buffer>
+  [384] objcall 508 ............................. pCam.cam.transform.interpolateTo(pCam.dummy.transform, pCam.buffer)
+  [387] getprop 498 ............................. <pCam>
+  [390] getchainedprop 255 ...................... <pCam.cam>
+  [392] getprop 498 ............................. <pCam>
+  [395] getchainedprop 607 ...................... <pCam.target>
+  [398] getobjprop 250 .......................... <pCam.target.worldPosition>
+  [400] pushzero ................................ <0>
+  [401] pushint8 1 .............................. <1>
+  [403] pushzero ................................ <0>
+  [404] pusharglist 3 ........................... <0, 1, 0>
+  [406] extcall 201 ............................. <vector(0, 1, 0)>
+  [408] pusharglistnoret 3 ...................... <pCam.cam, pCam.target.worldPosition, vector(0, 1, 0)>
+  [410] objcall 461 ............................. pCam.cam.pointAt(pCam.target.worldPosition, vector(0, 1, 0))
+  [413] getprop 498 ............................. <pCam>
+  [416] getobjprop 608 .......................... <pCam.buffer>
+  [419] getprop 498 ............................. <pCam>
+  [422] getobjprop 609 .......................... <pCam.bufferDefault>
+  [425] lt ...................................... <pCam.buffer < pCam.bufferDefault>
+  [426] jmpifz [447] ............................ if pCam.buffer < pCam.bufferDefault then / else
+  [429] getprop 498 ............................. <pCam>
+  [432] getprop 498 ............................. <pCam>
+  [435] getobjprop 608 .......................... <pCam.buffer>
+  [438] pushint8 1 .............................. <1>
+  [440] add ..................................... <pCam.buffer + 1>
+  [441] setobjprop 608 .......................... pCam.buffer = pCam.buffer + 1
+  [444] jmp [478]
+  [447] getprop 498 ............................. <pCam>
+  [450] getobjprop 608 .......................... <pCam.buffer>
+  [453] getprop 498 ............................. <pCam>
+  [456] getobjprop 609 .......................... <pCam.bufferDefault>
+  [459] gt ...................................... <pCam.buffer > pCam.bufferDefault>
+  [460] jmpifz [478] ............................ if pCam.buffer > pCam.bufferDefault then
+  [463] getprop 498 ............................. <pCam>
+  [466] getprop 498 ............................. <pCam>
+  [469] getobjprop 608 .......................... <pCam.buffer>
+  [472] pushint8 1 .............................. <1>
+  [474] sub ..................................... <pCam.buffer - 1>
+  [475] setobjprop 608 .......................... pCam.buffer = pCam.buffer - 1
+  [478] ret
+end

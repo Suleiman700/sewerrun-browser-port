@@ -1,0 +1,24 @@
+on enterFrame
+  [  0] pushint8 1 .............................. <1>
+  [  2] pusharglist 1 ........................... <1>
+  [  4] extcall 26 .............................. <sprite(1)>
+  [  6] pushcons 0 .............................. <EMPTY>
+  [  8] pushsymb 681 ............................ <#cursor>
+  [ 11] pusharglist 3 ........................... <sprite(1), EMPTY, #cursor>
+  [ 13] objcall 682 ............................. <sprite(1).getFlashProperty(EMPTY, #cursor)>
+  [ 16] setlocal 0 .............................. c = sprite(1).getFlashProperty(EMPTY, #cursor)
+  [ 18] getlocal 0 .............................. <c>
+  [ 20] pushint8 2 .............................. <2>
+  [ 22] eq ...................................... <c = 2>
+  [ 23] jmpifz [ 40] ............................ if c = 2 then / else
+  [ 26] gettoplevelprop 683 ..................... <_player>
+  [ 29] pushint16 280 ........................... <280>
+  [ 32] pusharglistnoret 2 ...................... <_player, 280>
+  [ 34] objcall 681 ............................. _player.cursor(280)
+  [ 37] jmp [ 49]
+  [ 40] gettoplevelprop 683 ..................... <_player>
+  [ 43] pushzero ................................ <0>
+  [ 44] pusharglistnoret 2 ...................... <_player, 0>
+  [ 46] objcall 681 ............................. _player.cursor(0)
+  [ 49] ret
+end

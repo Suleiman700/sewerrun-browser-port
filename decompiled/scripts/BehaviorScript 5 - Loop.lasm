@@ -1,0 +1,8 @@
+on exitFrame me
+  [  0] gettoplevelprop 23 ...................... <_movie>
+  [  2] gettoplevelprop 23 ...................... <_movie>
+  [  4] getobjprop 680 .......................... <_movie.frame>
+  [  7] pusharglistnoret 2 ...................... <_movie, _movie.frame>
+  [  9] objcall 24 .............................. _movie.go(_movie.frame)
+  [ 11] ret
+end

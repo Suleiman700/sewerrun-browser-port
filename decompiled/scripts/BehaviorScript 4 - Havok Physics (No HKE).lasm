@@ -1,0 +1,443 @@
+property pInitialized, pHavok, pTimeStep, pSubSteps, pPaused, pScale, pTolerance, pSprite
+global gHavok, gPaused, gTimeFactor, gFPSFactor
+
+on beginSprite me
+  [  0] getparam 0 .............................. <me>
+  [  2] getprop 199 ............................. <pHavok>
+  [  4] pusharglist 2 ........................... <me, pHavok>
+  [  6] objcall 650 ............................. <me.getHavokCastMember(pHavok)>
+  [  9] setprop 199 ............................. pHavok = me.getHavokCastMember(pHavok)
+  [ 11] getparam 0 .............................. <me>
+  [ 13] pusharglistnoret 1 ...................... <me>
+  [ 15] objcall 643 ............................. me.initializePhysics()
+  [ 18] pushfloat32 1.0 ......................... <1.0>
+  [ 23] setglobal 99 ............................ gTimeFactor = 1.0
+  [ 25] pushfloat32 1.0 ......................... <1.0>
+  [ 30] setglobal 493 ........................... gFPSFactor = 1.0
+  [ 33] ret
+end
+
+on endSprite me
+  [  0] getprop 651 ............................. <pInitialized>
+  [  3] jmpifz [ 17] ............................ if pInitialized then
+  [  6] getprop 199 ............................. <pHavok>
+  [  8] pusharglistnoret 1 ...................... <pHavok>
+  [ 10] objcall 634 ............................. pHavok.shutDown()
+  [ 13] pushzero ................................ <0>
+  [ 14] setprop 651 ............................. pInitialized = 0
+  [ 17] ret
+end
+
+on exitFrame me
+  [  0] getglobal 493 ........................... <gFPSFactor>
+  [  3] pushfloat32 2.0 ......................... <2.0>
+  [  8] gt ...................................... <gFPSFactor > 2.0>
+  [  9] jmpifz [ 20] ............................ if gFPSFactor > 2.0 then
+  [ 12] pushfloat32 2.0 ......................... <2.0>
+  [ 17] setglobal 493 ........................... gFPSFactor = 2.0
+  [ 20] getglobal 493 ........................... <gFPSFactor>
+  [ 23] pushfloat32 0.5 ......................... <0.5>
+  [ 28] lt ...................................... <gFPSFactor < 0.5>
+  [ 29] jmpifz [ 40] ............................ if gFPSFactor < 0.5 then
+  [ 32] pushfloat32 0.5 ......................... <0.5>
+  [ 37] setglobal 493 ........................... gFPSFactor = 0.5
+  [ 40] getglobal 99 ............................ <gTimeFactor>
+  [ 42] pushzero ................................ <0>
+  [ 43] gt ...................................... <gTimeFactor > 0>
+  [ 44] jmpifz [ 67] ............................ if gTimeFactor > 0 then
+  [ 47] getprop 199 ............................. <pHavok>
+  [ 49] getprop 652 ............................. <pTimeStep>
+  [ 52] getglobal 99 ............................ <gTimeFactor>
+  [ 54] mul ..................................... <pTimeStep * gTimeFactor>
+  [ 55] getglobal 493 ........................... <gFPSFactor>
+  [ 58] mul ..................................... <pTimeStep * gTimeFactor * gFPSFactor>
+  [ 59] getprop 653 ............................. <pSubSteps>
+  [ 62] pusharglistnoret 3 ...................... <pHavok, pTimeStep * gTimeFactor * gFPSFactor, pSubSteps>
+  [ 64] objcall 654 ............................. pHavok.step(pTimeStep * gTimeFactor * gFPSFactor, pSubSteps)
+  [ 67] ret
+end
+
+on initializePhysics me
+  [  0] pushzero ................................ <0>
+  [  1] setglobal 641 ........................... gPaused = 0
+  [  4] getparam 0 .............................. <me>
+  [  6] getobjprop 198 .......................... <me.spriteNum>
+  [  8] pusharglist 1 ........................... <me.spriteNum>
+  [ 10] extcall 26 .............................. <sprite(me.spriteNum)>
+  [ 12] setprop 655 ............................. pSprite = sprite(me.spriteNum)
+  [ 15] getprop 199 ............................. <pHavok>
+  [ 17] pusharglist 1 ........................... <pHavok>
+  [ 19] extcall 108 ............................. <member(pHavok)>
+  [ 21] setprop 199 ............................. pHavok = member(pHavok)
+  [ 23] getprop 651 ............................. <pInitialized>
+  [ 26] jmpifz [ 36] ............................ if pInitialized then
+  [ 29] getprop 199 ............................. <pHavok>
+  [ 31] pusharglistnoret 1 ...................... <pHavok>
+  [ 33] objcall 634 ............................. pHavok.shutDown()
+  [ 36] pushint8 1 .............................. <1>
+  [ 38] setprop 651 ............................. pInitialized = 1
+  [ 41] getprop 199 ............................. <pHavok>
+  [ 43] getprop 655 ............................. <pSprite>
+  [ 46] getobjprop 108 .......................... <pSprite.member>
+  [ 48] getprop 656 ............................. <pTolerance>
+  [ 51] getprop 657 ............................. <pScale>
+  [ 54] pusharglistnoret 4 ...................... <pHavok, pSprite.member, pTolerance, pScale>
+  [ 56] objcall 200 ............................. pHavok.Initialize(pSprite.member, pTolerance, pScale)
+  [ 58] getprop 199 ............................. <pHavok>
+  [ 60] setglobal 658 ........................... gHavok = pHavok
+  [ 63] pushcons 0 .............................. <"Initialized Physics">
+  [ 65] pusharglistnoret 1 ...................... <"Initialized Physics">
+  [ 67] extcall 100 ............................. put "Initialized Physics"
+  [ 69] ret
+end
+
+on togglePausePhysics me
+  [  0] getprop 659 ............................. <pPaused>
+  [  3] not ..................................... <not pPaused>
+  [  4] setprop 659 ............................. pPaused = not pPaused
+  [  7] ret
+end
+
+on isOKToAttach aScript, aSpriteType, aSpriteNum
+  [  0] getparam 1 .............................. <aSpriteType>
+  [  2] peek 0 .................................. case aSpriteType of
+  [  4] pushsymb 660 ............................ <#graphic>
+  [  7] eq
+  [  8] jmpifz [ 89] ............................ (case) #graphic:
+  [ 11] getparam 2 .............................. <aSpriteNum>
+  [ 13] pusharglist 1 ........................... <aSpriteNum>
+  [ 15] extcall 26 .............................. <sprite(aSpriteNum)>
+  [ 17] getchainedprop 108 ...................... <sprite(aSpriteNum).member>
+  [ 19] getobjprop 190 .......................... <sprite(aSpriteNum).member.type>
+  [ 21] peek 0 .................................. case sprite(aSpriteNum).member.type of
+  [ 23] pushsymb 191 ............................ <#shockwave3d>
+  [ 25] eq
+  [ 26] jmpifz [ 40] ............................ (case) #shockwave3d:
+  [ 29] pop 2
+  [ 31] pushint8 1 .............................. <1>
+  [ 33] pusharglistnoret 1 ...................... <1>
+  [ 35] extcall 107 ............................. return 1
+  [ 37] jmp [ 84]
+  [ 40] peek 0
+  [ 42] pushsymb 229 ............................ <#text>
+  [ 44] eq
+  [ 45] jmpifz [ 84] ............................ (case) #text:
+  [ 48] getparam 2 .............................. <aSpriteNum>
+  [ 50] pusharglist 1 ........................... <aSpriteNum>
+  [ 52] extcall 26 .............................. <sprite(aSpriteNum)>
+  [ 54] getchainedprop 108 ...................... <sprite(aSpriteNum).member>
+  [ 56] getobjprop 661 .......................... <sprite(aSpriteNum).member.displayMode>
+  [ 59] pushsymb 662 ............................ <#mode3d>
+  [ 62] eq ...................................... <sprite(aSpriteNum).member.displayMode = #mode3d>
+  [ 63] jmpifz [ 77] ............................ if sprite(aSpriteNum).member.displayMode = #mode3d then / else
+  [ 66] pop 2
+  [ 68] pushint8 1 .............................. <1>
+  [ 70] pusharglistnoret 1 ...................... <1>
+  [ 72] extcall 107 ............................. return 1
+  [ 74] jmp [ 84]
+  [ 77] pop 2
+  [ 79] pushzero ................................ <0>
+  [ 80] pusharglistnoret 1 ...................... <0>
+  [ 82] extcall 107 ............................. return 0
+  [ 84] pop 1 ................................... end case
+  [ 86] jmp [105]
+  [ 89] peek 0
+  [ 91] pushsymb 663 ............................ <#script>
+  [ 94] eq
+  [ 95] jmpifz [105] ............................ (case) #script:
+  [ 98] pop 1
+  [100] pushzero ................................ <0>
+  [101] pusharglistnoret 1 ...................... <0>
+  [103] extcall 107 ............................. return 0
+  [105] pop 1 ................................... end case
+  [107] ret
+end
+
+on getPropertyDescriptionList aScript
+  [  0] pushzero ................................ <0>
+  [  1] get 0 ................................... <the floatPrecision>
+  [  3] pushint8 4 .............................. <4>
+  [  5] lt ...................................... <the floatPrecision < 4>
+  [  6] jmpifz [ 14] ............................ if the floatPrecision < 4 then
+  [  9] pushint8 4 .............................. <4>
+  [ 11] pushzero ................................ <0>
+  [ 12] set 0 ................................... set the floatPrecision to 4
+  [ 14] getmovieprop 667 ........................ <the currentSpriteNum>
+  [ 17] pushzero ................................ <0>
+  [ 18] gt ...................................... <the currentSpriteNum > 0>
+  [ 19] jmpifz [201] ............................ if the currentSpriteNum > 0 then
+  [ 22] pusharglist 0 ........................... <[:]>
+  [ 24] pushproplist ............................ <[:]>
+  [ 25] setlocal 0 .............................. tGPDList = [:]
+  [ 27] pusharglist 0 ........................... <[]>
+  [ 29] pushlist ................................ <[]>
+  [ 30] setlocal 1 .............................. tList = []
+  [ 32] getparam 0 .............................. <aScript>
+  [ 34] getlocal 1 .............................. <tList>
+  [ 36] pusharglist 2 ........................... <aScript, tList>
+  [ 38] objcall 649 ............................. <aScript.getHavokCastMembers(tList)>
+  [ 41] setlocal 1 .............................. tList = aScript.getHavokCastMembers(tList)
+  [ 43] getlocal 0 .............................. <tGPDList>
+  [ 45] pushsymb 199 ............................ <#pHavok>
+  [ 47] pushsymb 668 ............................ <#comment>
+  [ 50] pushcons 1 .............................. <"Which Havok Cast Member">
+  [ 52] pushsymb 669 ............................ <#format>
+  [ 55] pushsymb 128 ............................ <#string>
+  [ 57] pushsymb 242 ............................ <#range>
+  [ 59] getlocal 1 .............................. <tList>
+  [ 61] pushsymb 320 ............................ <#default>
+  [ 64] getlocal 1 .............................. <tList>
+  [ 66] pushint8 1 .............................. <1>
+  [ 68] pusharglist 2 ........................... <tList, 1>
+  [ 70] objcall 35 .............................. <tList[1]>
+  [ 72] pusharglist 8 ........................... <[#comment: "Which Havok Cast Member", #format: #string, #range: tList, #default: tList[1]]>
+  [ 74] pushproplist ............................ <[#comment: "Which Havok Cast Member", #format: #string, #range: tList, #default: tList[1]]>
+  [ 75] pusharglistnoret 3 ...................... <tGPDList, #pHavok, [#comment: "Which Havok Cast Member", #format: #string, #range: tList, #default: tList[1]]>
+  [ 77] objcall 291 ............................. tGPDList[#pHavok] = [#comment: "Which Havok Cast Member", #format: #string, #range: tList, #default: tList[1]]
+  [ 80] getlocal 0 .............................. <tGPDList>
+  [ 82] pushsymb 656 ............................ <#pTolerance>
+  [ 85] pushsymb 668 ............................ <#comment>
+  [ 88] pushcons 2 .............................. <"Tolerance">
+  [ 90] pushsymb 669 ............................ <#format>
+  [ 93] pushsymb 491 ............................ <#float>
+  [ 96] pushsymb 320 ............................ <#default>
+  [ 99] pushint8 4 .............................. <4>
+  [101] pusharglist 6 ........................... <[#comment: "Tolerance", #format: #float, #default: 4]>
+  [103] pushproplist ............................ <[#comment: "Tolerance", #format: #float, #default: 4]>
+  [104] pusharglistnoret 3 ...................... <tGPDList, #pTolerance, [#comment: "Tolerance", #format: #float, #default: 4]>
+  [106] objcall 291 ............................. tGPDList[#pTolerance] = [#comment: "Tolerance", #format: #float, #default: 4]
+  [109] getlocal 0 .............................. <tGPDList>
+  [111] pushsymb 652 ............................ <#pTimeStep>
+  [114] pushsymb 668 ............................ <#comment>
+  [117] pushcons 3 .............................. <"Time Step">
+  [119] pushsymb 669 ............................ <#format>
+  [122] pushsymb 491 ............................ <#float>
+  [125] pushsymb 320 ............................ <#default>
+  [128] pushcons 4 .............................. <0.025>
+  [130] pusharglist 6 ........................... <[#comment: "Time Step", #format: #float, #default: 0.025]>
+  [132] pushproplist ............................ <[#comment: "Time Step", #format: #float, #default: 0.025]>
+  [133] pusharglistnoret 3 ...................... <tGPDList, #pTimeStep, [#comment: "Time Step", #format: #float, #default: 0.025]>
+  [135] objcall 291 ............................. tGPDList[#pTimeStep] = [#comment: "Time Step", #format: #float, #default: 0.025]
+  [138] getlocal 0 .............................. <tGPDList>
+  [140] pushsymb 653 ............................ <#pSubSteps>
+  [143] pushsymb 668 ............................ <#comment>
+  [146] pushcons 5 .............................. <"Substeps">
+  [148] pushsymb 669 ............................ <#format>
+  [151] pushsymb 25 ............................. <#integer>
+  [153] pushsymb 320 ............................ <#default>
+  [156] pushint8 5 .............................. <5>
+  [158] pusharglist 6 ........................... <[#comment: "Substeps", #format: #integer, #default: 5]>
+  [160] pushproplist ............................ <[#comment: "Substeps", #format: #integer, #default: 5]>
+  [161] pusharglistnoret 3 ...................... <tGPDList, #pSubSteps, [#comment: "Substeps", #format: #integer, #default: 5]>
+  [163] objcall 291 ............................. tGPDList[#pSubSteps] = [#comment: "Substeps", #format: #integer, #default: 5]
+  [166] getlocal 0 .............................. <tGPDList>
+  [168] pushsymb 657 ............................ <#pScale>
+  [171] pushsymb 668 ............................ <#comment>
+  [174] pushcons 6 .............................. <"World Scale">
+  [176] pushsymb 669 ............................ <#format>
+  [179] pushsymb 491 ............................ <#float>
+  [182] pushsymb 320 ............................ <#default>
+  [185] pushcons 7 .............................. <0.0254>
+  [187] pusharglist 6 ........................... <[#comment: "World Scale", #format: #float, #default: 0.0254]>
+  [189] pushproplist ............................ <[#comment: "World Scale", #format: #float, #default: 0.0254]>
+  [190] pusharglistnoret 3 ...................... <tGPDList, #pScale, [#comment: "World Scale", #format: #float, #default: 0.0254]>
+  [192] objcall 291 ............................. tGPDList[#pScale] = [#comment: "World Scale", #format: #float, #default: 0.0254]
+  [195] getlocal 0 .............................. <tGPDList>
+  [197] pusharglistnoret 1 ...................... <tGPDList>
+  [199] extcall 107 ............................. return tGPDList
+  [201] ret
+end
+
+on getBehaviorTooltip aScript
+  [  0] pushcons 8 .............................. <"Updates 3D models based on a physical simulation">
+  [  2] pushcons 9 .............................. <RETURN>
+  [  4] joinstr ................................. <"Updates 3D models based on a physical simulation" & RETURN>
+  [  5] pushcons 9 .............................. <RETURN>
+  [  7] joinstr ................................. <"Updates 3D models based on a physical simulation" & RETURN & RETURN>
+  [  8] setlocal 0 .............................. tString1 = "Updates 3D models based on a physical simulation" & RETURN & RETURN
+  [ 10] pushcons 10 ............................. <"-">
+  [ 12] pushcons 11 ............................. <"Type">
+  [ 14] joinpadstr .............................. <"-" && "Type">
+  [ 15] pushcons 12 ............................. <":">
+  [ 17] joinpadstr .............................. <"-" && "Type" && ":">
+  [ 18] pushcons 13 ............................. <"Independent Action">
+  [ 20] joinpadstr .............................. <"-" && "Type" && ":" && "Independent Action">
+  [ 21] pushcons 9 .............................. <RETURN>
+  [ 23] joinstr ................................. <"-" && "Type" && ":" && "Independent Action" & RETURN>
+  [ 24] setlocal 1 .............................. tString2 = "-" && "Type" && ":" && "Independent Action" & RETURN
+  [ 26] pushcons 10 ............................. <"-">
+  [ 28] pushcons 14 ............................. <"Dependencies">
+  [ 30] joinpadstr .............................. <"-" && "Dependencies">
+  [ 31] pushcons 12 ............................. <":">
+  [ 33] joinpadstr .............................. <"-" && "Dependencies" && ":">
+  [ 34] pushcons 15 ............................. <"None">
+  [ 36] joinpadstr .............................. <"-" && "Dependencies" && ":" && "None">
+  [ 37] pushcons 9 .............................. <RETURN>
+  [ 39] joinstr ................................. <"-" && "Dependencies" && ":" && "None" & RETURN>
+  [ 40] setlocal 2 .............................. tString3 = "-" && "Dependencies" && ":" && "None" & RETURN
+  [ 42] getlocal 0 .............................. <tString1>
+  [ 44] getlocal 1 .............................. <tString2>
+  [ 46] joinstr ................................. <tString1 & tString2>
+  [ 47] getlocal 2 .............................. <tString3>
+  [ 49] joinstr ................................. <tString1 & tString2 & tString3>
+  [ 50] pusharglistnoret 1 ...................... <tString1 & tString2 & tString3>
+  [ 52] extcall 107 ............................. return tString1 & tString2 & tString3
+  [ 54] ret
+end
+
+on getBehaviorDescription aScript
+  [  0] pushcons 16 ............................. <"HAVOK PHYSICS">
+  [  2] pushcons 9 .............................. <RETURN>
+  [  4] joinstr ................................. <"HAVOK PHYSICS" & RETURN>
+  [  5] pushcons 9 .............................. <RETURN>
+  [  7] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN>
+  [  8] pushcons 17 ............................. <"Enables the Havok engine for the sprite. ">
+  [ 10] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. ">
+  [ 11] pushcons 18 ............................. <"Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation.">
+  [ 13] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation.">
+  [ 14] pushcons 19 ............................. <EMPTY>
+  [ 16] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY>
+  [ 17] pushcons 9 .............................. <RETURN>
+  [ 19] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN>
+  [ 20] pushcons 9 .............................. <RETURN>
+  [ 22] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN>
+  [ 23] pushcons 20 ............................. <"This independent behavior does not require a trigger.">
+  [ 25] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger.">
+  [ 26] pushcons 9 .............................. <RETURN>
+  [ 28] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN>
+  [ 29] pushcons 9 .............................. <RETURN>
+  [ 31] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN>
+  [ 32] pushcons 21 ............................. <"ACTIONS AND THEIR REQUIRED TRIGGERS:">
+  [ 34] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:">
+  [ 35] pushcons 9 .............................. <RETURN>
+  [ 37] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN>
+  [ 38] pushcons 22 ............................. <"- None">
+  [ 40] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None">
+  [ 41] pushcons 9 .............................. <RETURN>
+  [ 43] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN>
+  [ 44] pushcons 9 .............................. <RETURN>
+  [ 46] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN>
+  [ 47] pushcons 23 ............................. <"PARAMETERS:">
+  [ 49] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:">
+  [ 50] pushcons 9 .............................. <RETURN>
+  [ 52] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN>
+  [ 53] pushcons 24 ............................. <"- Havok Cast Member">
+  [ 55] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member">
+  [ 56] pushcons 9 .............................. <RETURN>
+  [ 58] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN>
+  [ 59] pushcons 9 .............................. <RETURN>
+  [ 61] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN>
+  [ 62] pushcons 25 ............................. <"- Tolerance">
+  [ 64] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance">
+  [ 65] pushcons 9 .............................. <RETURN>
+  [ 67] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN>
+  [ 68] pushcons 9 .............................. <RETURN>
+  [ 70] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN>
+  [ 71] pushcons 26 ............................. <"- Timestep">
+  [ 73] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN & "- Timestep">
+  [ 74] pushcons 9 .............................. <RETURN>
+  [ 76] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN & "- Timestep" & RETURN>
+  [ 77] pushcons 9 .............................. <RETURN>
+  [ 79] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN & "- Timestep" & RETURN & RETURN>
+  [ 80] pushcons 27 ............................. <"- Substeps">
+  [ 82] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN & "- Timestep" & RETURN & RETURN & "- Substeps">
+  [ 83] pushcons 9 .............................. <RETURN>
+  [ 85] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN & "- Timestep" & RETURN & RETURN & "- Substeps" & RETURN>
+  [ 86] pushcons 9 .............................. <RETURN>
+  [ 88] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN & "- Timestep" & RETURN & RETURN & "- Substeps" & RETURN & RETURN>
+  [ 89] pushcons 28 ............................. <"- World Scale">
+  [ 91] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN & "- Timestep" & RETURN & RETURN & "- Substeps" & RETURN & RETURN & "- World Scale">
+  [ 92] pushcons 9 .............................. <RETURN>
+  [ 94] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN & "- Timestep" & RETURN & RETURN & "- Substeps" & RETURN & RETURN & "- World Scale" & RETURN>
+  [ 95] pushcons 9 .............................. <RETURN>
+  [ 97] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN & "- Timestep" & RETURN & RETURN & "- Substeps" & RETURN & RETURN & "- World Scale" & RETURN & RETURN>
+  [ 98] pushcons 29 ............................. <"PERMITTED SPRITE TYPES:">
+  [100] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN & "- Timestep" & RETURN & RETURN & "- Substeps" & RETURN & RETURN & "- World Scale" & RETURN & RETURN & "PERMITTED SPRITE TYPES:">
+  [101] pushcons 9 .............................. <RETURN>
+  [103] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN & "- Timestep" & RETURN & RETURN & "- Substeps" & RETURN & RETURN & "- World Scale" & RETURN & RETURN & "PERMITTED SPRITE TYPES:" & RETURN>
+  [104] pushcons 30 ............................. <"- Shockwave 3D">
+  [106] joinstr ................................. <"HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN & "- Timestep" & RETURN & RETURN & "- Substeps" & RETURN & RETURN & "- World Scale" & RETURN & RETURN & "PERMITTED SPRITE TYPES:" & RETURN & "- Shockwave 3D">
+  [107] setlocal 0 .............................. tString1 = "HAVOK PHYSICS" & RETURN & RETURN & "Enables the Havok engine for the sprite. " & "Any created rigid bodies from Shockwave 3D models are then updated based on a physics simulation." & EMPTY & RETURN & RETURN & "This independent behavior does not require a trigger." & RETURN & RETURN & "ACTIONS AND THEIR REQUIRED TRIGGERS:" & RETURN & "- None" & RETURN & RETURN & "PARAMETERS:" & RETURN & "- Havok Cast Member" & RETURN & RETURN & "- Tolerance" & RETURN & RETURN & "- Timestep" & RETURN & RETURN & "- Substeps" & RETURN & RETURN & "- World Scale" & RETURN & RETURN & "PERMITTED SPRITE TYPES:" & RETURN & "- Shockwave 3D"
+  [109] getlocal 0 .............................. <tString1>
+  [111] pusharglistnoret 1 ...................... <tString1>
+  [113] extcall 107 ............................. return tString1
+  [115] ret
+end
+
+on getHavokCastMembers me, aList
+  [  0] pushint8 1 .............................. <1>
+  [  2] setlocal 0
+  [  4] getlocal 0
+  [  6] pushint8 1 .............................. <1>
+  [  8] pushint8 2 .............................. <2>
+  [ 10] get 8 ................................... <the number of castMembers of castLib 1>
+  [ 12] lteq
+  [ 13] jmpifz [ 61] ............................ repeat with j = 1 to the number of castMembers of castLib 1
+  [ 16] getlocal 0 .............................. <j>
+  [ 18] pusharglist 1 ........................... <j>
+  [ 20] extcall 108 ............................. <member(j)>
+  [ 22] getobjprop 190 .......................... <member(j).type>
+  [ 24] pushsymb 675 ............................ <#havok>
+  [ 27] eq ...................................... <member(j).type = #havok>
+  [ 28] jmpifz [ 52] ............................ if member(j).type = #havok then
+  [ 31] getparam 1 .............................. <aList>
+  [ 33] getlocal 0 .............................. <j>
+  [ 35] pushcons 12 ............................. <":">
+  [ 37] joinstr ................................. <j & ":">
+  [ 38] getlocal 0 .............................. <j>
+  [ 40] pusharglist 1 ........................... <j>
+  [ 42] extcall 108 ............................. <member(j)>
+  [ 44] getobjprop 259 .......................... <member(j).name>
+  [ 47] joinstr ................................. <j & ":" & member(j).name>
+  [ 48] pusharglistnoret 2 ...................... <aList, j & ":" & member(j).name>
+  [ 50] objcall 233 ............................. aList.add(j & ":" & member(j).name)
+  [ 52] pushint8 1
+  [ 54] getlocal 0
+  [ 56] add
+  [ 57] setlocal 0
+  [ 59] endrepeat [  4]
+  [ 61] getparam 1 .............................. <aList>
+  [ 63] pushcons 15 ............................. <"None">
+  [ 65] pusharglistnoret 2 ...................... <aList, "None">
+  [ 67] objcall 233 ............................. aList.add("None")
+  [ 69] getparam 1 .............................. <aList>
+  [ 71] pusharglistnoret 1 ...................... <aList>
+  [ 73] extcall 107 ............................. return aList
+  [ 75] ret
+end
+
+on getHavokCastMember me, memberName
+  [  0] getparam 1 .............................. <memberName>
+  [  2] pushcons 12 ............................. <":">
+  [  4] getparam 1 .............................. <memberName>
+  [  6] pusharglist 2 ........................... <":", memberName>
+  [  8] extcall 445 ............................. <offset(":", memberName)>
+  [ 11] pushint8 1 .............................. <1>
+  [ 13] add ..................................... <offset(":", memberName) + 1>
+  [ 14] getparam 1 .............................. <memberName>
+  [ 16] getobjprop 260 .......................... <memberName.length>
+  [ 19] pusharglist 3 ........................... <memberName, offset(":", memberName) + 1, memberName.length>
+  [ 21] extcall 258 ............................. <chars(memberName, offset(":", memberName) + 1, memberName.length)>
+  [ 24] setlocal 0 .............................. nameStr = chars(memberName, offset(":", memberName) + 1, memberName.length)
+  [ 26] getparam 1 .............................. <memberName>
+  [ 28] pushint8 1 .............................. <1>
+  [ 30] pushcons 12 ............................. <":">
+  [ 32] getparam 1 .............................. <memberName>
+  [ 34] pusharglist 2 ........................... <":", memberName>
+  [ 36] extcall 445 ............................. <offset(":", memberName)>
+  [ 39] pushint8 1 .............................. <1>
+  [ 41] sub ..................................... <offset(":", memberName) - 1>
+  [ 42] pusharglist 3 ........................... <memberName, 1, offset(":", memberName) - 1>
+  [ 44] extcall 258 ............................. <chars(memberName, 1, offset(":", memberName) - 1)>
+  [ 47] setlocal 1 .............................. nameInt = chars(memberName, 1, offset(":", memberName) - 1)
+  [ 49] getlocal 1 .............................. <nameInt>
+  [ 51] pusharglist 1 ........................... <nameInt>
+  [ 53] extcall 25 .............................. <integer(nameInt)>
+  [ 55] setlocal 1 .............................. nameInt = integer(nameInt)
+  [ 57] getlocal 1 .............................. <nameInt>
+  [ 59] pusharglist 1 ........................... <nameInt>
+  [ 61] extcall 108 ............................. <member(nameInt)>
+  [ 63] pusharglistnoret 1 ...................... <member(nameInt)>
+  [ 65] extcall 107 ............................. return member(nameInt)
+  [ 67] ret
+end

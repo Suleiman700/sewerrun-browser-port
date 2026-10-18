@@ -1,0 +1,563 @@
+diff --git a/polyfill/src/standalone.tsx b/polyfill/src/standalone.tsx
+index fa70be5a..5841ad16 100644
+--- a/polyfill/src/standalone.tsx
++++ b/polyfill/src/standalone.tsx
+@@ -14,6 +14,8 @@ interface FlashConfig {
+   logLevel?: string;
+   /** When true, skip Ruffle entirely. Lingo Flash calls become no-ops. */
+   disableFlash?: boolean;
++  /** Max ms to wait for a SWF's ActionScript to answer before marking it ready (default/cap 3000). */
++  asInitWaitMs?: number;
+ }
+ 
+ function configureFlash(partial: FlashConfig): void {
+diff --git a/src/services/flashPlayerManager.ts b/src/services/flashPlayerManager.ts
+index 7233f92a..71c65fa8 100644
+--- a/src/services/flashPlayerManager.ts
++++ b/src/services/flashPlayerManager.ts
+@@ -1219,19 +1219,23 @@ export async function createFlashInstance(
+   // its script can be reached".
+   console.log(`[Flash] Instance ${key} loaded, waiting for SWF ActionScript to initialize...`);
+   {
+-    const asDeadline = Date.now() + 3000;
++    // Embedders can lower the cap via DirPlayer.configureFlash({ asInitWaitMs })
++    // for movies whose root never answers the probe while it is loading.
++    const asWaitCap = (window as any).__dirplayerFlashConfig?.asInitWaitMs;
++    const asWaitMs = typeof asWaitCap === 'number' && asWaitCap >= 0 ? Math.min(asWaitCap, 3000) : 3000;
++    const asDeadline = Date.now() + asWaitMs;
+     let asReadyMs = -1;
+     for (;;) {
+       const probe = playerGetVar(instance, '_level0._totalframes');
+       if (probe !== null && probe !== '' && probe !== 'undefined') {
+-        asReadyMs = 3000 - (asDeadline - Date.now());
++        asReadyMs = asWaitMs - (asDeadline - Date.now());
+         break;
+       }
+       if (Date.now() >= asDeadline) break;
+       await new Promise(resolve => setTimeout(resolve, 25));
+     }
+     console.log(
+-      `[Flash] Instance ${key} AS init ${asReadyMs >= 0 ? `ready in ${asReadyMs}ms` : 'TIMED OUT at 3000ms'}`
++      `[Flash] Instance ${key} AS init ${asReadyMs >= 0 ? `ready in ${asReadyMs}ms` : `TIMED OUT at ${asWaitMs}ms`}`
+     );
+   }
+ 
+@@ -1454,10 +1458,16 @@ function startFrameCapture(key: string): void {
+     // a key was held because input dispatch competed for what was left).
+     if (doCapture && !isOffscreenTexture) {
+       const tempo = Number((window as any).__dirplayerFrameTempo) || 0;
+-      if (tempo > 0) {
++      // The SWF can't repaint faster than its own frame rate either, so a
++      // 25fps HUD under a fast-tempo 3D movie (Sewer Run) was read back at the
++      // display's refresh rate for mostly identical pixels.
++      const rp = inst.rufflePlayer as any;
++      const swfFps = Number(rp?.metadata?.frameRate ?? rp?.ruffle?.()?.metadata?.frameRate) || 0;
++      const rate = Math.min(tempo > 0 ? tempo : Infinity, swfFps > 0 ? swfFps : Infinity);
++      if (rate !== Infinity) {
+         // Allow a little headroom so we don't systematically miss the stage's
+         // redraw by a fraction of an interval.
+-        const minInterval = (1000 / tempo) * 0.8;
++        const minInterval = (1000 / rate) * 0.8;
+         const now = performance.now();
+         if (now - lastCaptureMs < minInterval) {
+           doCapture = false;
+diff --git a/vm-rust/Cargo.toml b/vm-rust/Cargo.toml
+index f0a3b59b..e50607a5 100644
+--- a/vm-rust/Cargo.toml
++++ b/vm-rust/Cargo.toml
+@@ -182,3 +182,6 @@ wasm-opt = ["-O", "-g"]
+ 
+ [package.metadata.wasm-pack.profile.dev.wasm-bindgen]
+ dwarf-debug-info = false
++
++[package.metadata.wasm-pack.profile.profiling]
++wasm-opt = ["-O2", "-g"]
+diff --git a/vm-rust/src/director/chunks/w3d/bitstream.rs b/vm-rust/src/director/chunks/w3d/bitstream.rs
+index 761a8bc0..ef3d9ccf 100644
+--- a/vm-rust/src/director/chunks/w3d/bitstream.rs
++++ b/vm-rust/src/director/chunks/w3d/bitstream.rs
+@@ -36,9 +36,94 @@ pub struct IFXBitStreamCompressed {
+     data_local_next: u32,
+     data_bit_offset: i32,
+ 
+-    // Context manager (histogram arrays)
+-    symbol_count: Vec<Option<Vec<u16>>>,
+-    cumulative_count: Vec<Option<Vec<u16>>>,
++    // Context manager (one adaptive histogram per dynamic context)
++    histograms: Vec<Option<Histogram>>,
++}
++
++/// Adaptive symbol histogram for one dynamic context.
++///
++/// Same model as IFX's symbol/cumulative count arrays — including the array
++/// growth rule (`symbol + ARRAY_SIZE_INCR`) and the halving rescale at
++/// `ELEPHANT` — but cumulative frequencies come from a Fenwick tree, so a
++/// lookup or update is O(log n) instead of a walk over up to 64K entries.
++#[derive(Clone)]
++struct Histogram {
++    /// Per-symbol counts; `sym.len()` is the IFX array length.
++    sym: Vec<u16>,
++    /// 1-indexed Fenwick tree over `sym`, sized to a power of two >= `sym.len()`.
++    tree: Vec<u32>,
++    total: u32,
++}
++
++impl Histogram {
++    fn new(len: usize) -> Self {
++        let mut sym = vec![0u16; len];
++        sym[0] = 1; // escape symbol
++        let mut h = Self { sym, tree: Vec::new(), total: 0 };
++        h.rebuild();
++        h
++    }
++
++    fn capacity(&self) -> usize {
++        self.tree.len() - 1
++    }
++
++    fn rebuild(&mut self) {
++        let cap = self.sym.len().next_power_of_two();
++        let mut tree = vec![0u32; cap + 1];
++        for (i, &c) in self.sym.iter().enumerate() {
++            tree[i + 1] = c as u32;
++        }
++        // Push every node into its parent, including the zero padding past
++        // `sym.len()` — those nodes still carry their children's sums.
++        for i in 1..=cap {
++            let parent = i + (i & i.wrapping_neg());
++            if parent <= cap {
++                tree[parent] += tree[i];
++            }
++        }
++        self.total = self.sym.iter().map(|&c| c as u32).sum();
++        self.tree = tree;
++    }
++
++    fn increment(&mut self, symbol: usize) {
++        self.sym[symbol] += 1;
++        self.total += 1;
++        let cap = self.capacity();
++        let mut i = symbol + 1;
++        while i <= cap {
++            self.tree[i] += 1;
++            i += i & i.wrapping_neg();
++        }
++    }
++
++    /// Sum of counts of symbols `0..symbol`.
++    fn prefix(&self, symbol: usize) -> u32 {
++        let mut i = symbol.min(self.capacity());
++        let mut sum = 0;
++        while i > 0 {
++            sum += self.tree[i];
++            i -= i & i.wrapping_neg();
++        }
++        sum
++    }
++
++    /// Largest symbol below `sym.len()` whose prefix sum is <= `freq`.
++    fn find(&self, freq: u32) -> usize {
++        let cap = self.capacity();
++        let mut pos = 0usize;
++        let mut rem = freq;
++        let mut step = cap;
++        while step > 0 {
++            let next = pos + step;
++            if next <= cap && self.tree[next] <= rem {
++                pos = next;
++                rem -= self.tree[next];
++            }
++            step >>= 1;
++        }
++        pos.min(self.sym.len() - 1)
++    }
+ }
+ 
+ impl IFXBitStreamCompressed {
+@@ -53,8 +138,7 @@ impl IFXBitStreamCompressed {
+         let data_local = data[0];
+         let data_local_next = if data.len() > 1 { data[1] } else { 0 };
+ 
+-        let symbol_count = vec![None; (STATIC_FULL + 1) as usize];
+-        let cumulative_count = vec![None; (STATIC_FULL + 1) as usize];
++        let histograms = vec![None; (STATIC_FULL + 1) as usize];
+ 
+         Self {
+             high: 0x0000FFFF,
+@@ -66,8 +150,7 @@ impl IFXBitStreamCompressed {
+             data_local,
+             data_local_next,
+             data_bit_offset: 0,
+-            symbol_count,
+-            cumulative_count,
++            histograms,
+         }
+     }
+ 
+@@ -444,64 +527,37 @@ impl IFXBitStreamCompressed {
+         if !Self::is_dynamic_context(context) || symbol >= MAXIMUM_SYMBOL_IN_HISTOGRAM {
+             return;
+         }
+-
+-        let ctx = context as usize;
+-
+-        // Ensure arrays are large enough
+-        let needs_resize = match &self.cumulative_count[ctx] {
+-            None => true,
+-            Some(v) => v.len() <= symbol as usize,
+-        };
+-
+-        if needs_resize {
+-            let new_len = symbol as usize + ARRAY_SIZE_INCR;
+-            let is_new = self.cumulative_count[ctx].is_none();
+-
+-            let mut new_cum = vec![0u16; new_len];
+-            let mut new_sym = vec![0u16; new_len];
+-
+-            if is_new {
+-                // New context: initialize escape symbol with freq 1
+-                new_cum[0] = 1;
+-                new_sym[0] = 1;
+-            } else {
+-                let old_cum = self.cumulative_count[ctx].as_ref().unwrap();
+-                let old_sym = self.symbol_count[ctx].as_ref().unwrap();
+-                new_cum[..old_cum.len()].copy_from_slice(old_cum);
+-                new_sym[..old_sym.len()].copy_from_slice(old_sym);
++        let symbol = symbol as usize;
++        let hist = &mut self.histograms[context as usize];
++        match hist {
++            None => *hist = Some(Histogram::new(symbol + ARRAY_SIZE_INCR)),
++            Some(h) if h.sym.len() <= symbol => {
++                h.sym.resize(symbol + ARRAY_SIZE_INCR, 0);
++                if h.sym.len() > h.capacity() {
++                    h.rebuild();
++                }
+             }
+-
+-            self.cumulative_count[ctx] = Some(new_cum);
+-            self.symbol_count[ctx] = Some(new_sym);
++            _ => {}
+         }
++        let h = hist.as_mut().unwrap();
+ 
+-        let cum_count = self.cumulative_count[ctx].as_mut().unwrap();
+-        let sym_count = self.symbol_count[ctx].as_mut().unwrap();
+-
+-        if cum_count[0] >= ELEPHANT {
++        if h.total >= ELEPHANT as u32 {
+             // Rescale to prevent overflow
+-            let len = cum_count.len();
+-            let mut temp_accum: u16 = 0;
+-            for i in (0..len).rev() {
+-                sym_count[i] >>= 1;
+-                temp_accum += sym_count[i];
+-                cum_count[i] = temp_accum;
++            for c in h.sym.iter_mut() {
++                *c >>= 1;
+             }
+-            sym_count[0] += 1;
+-            cum_count[0] += 1;
++            h.sym[0] += 1;
++            h.rebuild();
+         }
+ 
+-        sym_count[symbol as usize] += 1;
+-        for i in 0..=symbol as usize {
+-            cum_count[i] += 1;
+-        }
++        h.increment(symbol);
+     }
+ 
+     fn get_symbol_frequency(&self, context: u32, symbol: u32) -> u32 {
+         if Self::is_dynamic_context(context) {
+-            if let Some(sym_count) = &self.symbol_count[context as usize] {
+-                if (symbol as usize) < sym_count.len() {
+-                    return sym_count[symbol as usize] as u32;
++            if let Some(h) = &self.histograms[context as usize] {
++                if (symbol as usize) < h.sym.len() {
++                    return h.sym[symbol as usize] as u32;
+                 }
+             }
+             if symbol == 0 { return 1; } // escape default
+@@ -513,11 +569,11 @@ impl IFXBitStreamCompressed {
+ 
+     fn get_cumulative_symbol_frequency(&self, context: u32, symbol: u32) -> u32 {
+         if Self::is_dynamic_context(context) {
+-            if let Some(cum_count) = &self.cumulative_count[context as usize] {
+-                if (symbol as usize) < cum_count.len() {
+-                    return (cum_count[0] - cum_count[symbol as usize]) as u32;
++            if let Some(h) = &self.histograms[context as usize] {
++                if (symbol as usize) < h.sym.len() {
++                    return h.prefix(symbol as usize);
+                 }
+-                return cum_count[0] as u32;
++                return h.total;
+             }
+             return 0;
+         }
+@@ -527,8 +583,8 @@ impl IFXBitStreamCompressed {
+ 
+     fn get_total_symbol_frequency(&self, context: u32) -> u32 {
+         if Self::is_dynamic_context(context) {
+-            if let Some(cum_count) = &self.cumulative_count[context as usize] {
+-                return cum_count[0] as u32;
++            if let Some(h) = &self.histograms[context as usize] {
++                return h.total;
+             }
+             return 1; // just escape symbol
+         }
+@@ -539,19 +595,10 @@ impl IFXBitStreamCompressed {
+ 
+     fn get_symbol_from_frequency(&self, context: u32, symbol_frequency: u32) -> u32 {
+         if Self::is_dynamic_context(context) {
+-            if let Some(cum_count) = &self.cumulative_count[context as usize] {
++            if let Some(h) = &self.histograms[context as usize] {
+                 if symbol_frequency == 0 { return 0; }
+-                if (cum_count[0] as u32) < symbol_frequency { return 0; }
+-
+-                let mut r_value = 0u32;
+-                for i in 0..cum_count.len() as u32 {
+-                    if self.get_cumulative_symbol_frequency(context, i) <= symbol_frequency {
+-                        r_value = i;
+-                    } else {
+-                        break;
+-                    }
+-                }
+-                return r_value;
++                if h.total < symbol_frequency { return 0; }
++                return h.find(symbol_frequency) as u32;
+             }
+             return 0;
+         }
+@@ -563,3 +610,96 @@ impl IFXBitStreamCompressed {
+         context != CONTEXT8 && context <= STATIC_FULL
+     }
+ }
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    /// The original array-walking context manager, kept as the reference the
++    /// Fenwick histogram must match exactly.
++    struct Reference {
++        sym: Option<Vec<u16>>,
++        cum: Option<Vec<u16>>,
++    }
++
++    impl Reference {
++        fn add(&mut self, symbol: u32) {
++            if symbol >= MAXIMUM_SYMBOL_IN_HISTOGRAM { return; }
++            let needs_resize = match &self.cum { None => true, Some(v) => v.len() <= symbol as usize };
++            if needs_resize {
++                let new_len = symbol as usize + ARRAY_SIZE_INCR;
++                let mut new_cum = vec![0u16; new_len];
++                let mut new_sym = vec![0u16; new_len];
++                match (&self.cum, &self.sym) {
++                    (Some(c), Some(s)) => { new_cum[..c.len()].copy_from_slice(c); new_sym[..s.len()].copy_from_slice(s); }
++                    _ => { new_cum[0] = 1; new_sym[0] = 1; }
++                }
++                self.cum = Some(new_cum);
++                self.sym = Some(new_sym);
++            }
++            let cum = self.cum.as_mut().unwrap();
++            let sym = self.sym.as_mut().unwrap();
++            if cum[0] >= ELEPHANT {
++                let mut acc: u16 = 0;
++                for i in (0..cum.len()).rev() { sym[i] >>= 1; acc += sym[i]; cum[i] = acc; }
++                sym[0] += 1;
++                cum[0] += 1;
++            }
++            sym[symbol as usize] += 1;
++            for i in 0..=symbol as usize { cum[i] += 1; }
++        }
++        fn freq(&self, s: u32) -> u32 {
++            if let Some(v) = &self.sym { if (s as usize) < v.len() { return v[s as usize] as u32; } }
++            if s == 0 { 1 } else { 0 }
++        }
++        fn cum_freq(&self, s: u32) -> u32 {
++            match &self.cum { Some(c) => if (s as usize) < c.len() { (c[0] - c[s as usize]) as u32 } else { c[0] as u32 }, None => 0 }
++        }
++        fn total(&self) -> u32 { match &self.cum { Some(c) => c[0] as u32, None => 1 } }
++        fn from_freq(&self, f: u32) -> u32 {
++            let c = match &self.cum { Some(c) => c, None => return 0 };
++            if f == 0 || (c[0] as u32) < f { return 0; }
++            let mut r = 0;
++            for i in 0..c.len() as u32 { if self.cum_freq(i) <= f { r = i; } else { break; } }
++            r
++        }
++    }
++
++    #[test]
++    fn fenwick_histogram_matches_reference() {
++        let mut seed: u64 = 0x5EED_5EED;
++        let mut rnd = |m: u32| { seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407); ((seed >> 33) as u32) % m };
++        for round in 0..20 {
++            let mut bs = IFXBitStreamCompressed::new(&[0u8; 16]);
++            let ctx = 1 + round;
++            let mut reference = Reference { sym: None, cum: None };
++            // Mostly small symbols, sometimes large jumps (forces growth past the
++            // Fenwick capacity) and an occasional out-of-range symbol.
++            let range = [8u32, 64, 600, 5000, 70000][round as usize % 5];
++            for _ in 0..10_000 {
++                let s = if rnd(50) == 0 { rnd(70000) } else { rnd(range) };
++                bs.add_symbol(ctx, s);
++                reference.add(s);
++                let total = reference.total();
++                assert_eq!(bs.get_total_symbol_frequency(ctx), total);
++                if rnd(100) == 0 {
++                    // Exhaustive sweep: every lookup value the decoder can ask for.
++                    for q in 0..=total + 1 {
++                        assert_eq!(bs.get_symbol_from_frequency(ctx, q), reference.from_freq(q), "sweep from_freq({q})");
++                    }
++                    let len = reference.sym.as_ref().unwrap().len() as u32;
++                    for probe in 0..len + 2 {
++                        assert_eq!(bs.get_cumulative_symbol_frequency(ctx, probe), reference.cum_freq(probe), "sweep cum({probe})");
++                    }
++                }
++                for _ in 0..3 {
++                    let q = rnd(total + 2);
++                    assert_eq!(bs.get_symbol_from_frequency(ctx, q), reference.from_freq(q), "from_freq({q})");
++                    let probe = rnd(range + 40);
++                    assert_eq!(bs.get_cumulative_symbol_frequency(ctx, probe), reference.cum_freq(probe), "cum({probe})");
++                    assert_eq!(bs.get_symbol_frequency(ctx, probe), reference.freq(probe), "freq({probe})");
++                }
++            }
++        }
++    }
++}
+diff --git a/vm-rust/src/director/chunks/w3d/mod.rs b/vm-rust/src/director/chunks/w3d/mod.rs
+index 74a58c83..d924ad05 100644
+--- a/vm-rust/src/director/chunks/w3d/mod.rs
++++ b/vm-rust/src/director/chunks/w3d/mod.rs
+@@ -84,3 +84,4 @@ fn find_ifx_start(data: &[u8]) -> Option<&[u8]> {
+ 
+     None
+ }
++mod realdata_test;
+diff --git a/vm-rust/src/director/chunks/w3d/realdata_test.rs b/vm-rust/src/director/chunks/w3d/realdata_test.rs
+new file mode 100644
+index 00000000..8ab2829e
+--- /dev/null
++++ b/vm-rust/src/director/chunks/w3d/realdata_test.rs
+@@ -0,0 +1,35 @@
++//! LOCAL TEST (Sewer Run): digest decoded CLOD meshes of real W3D chunks so two
++//! decoder implementations can be compared. Run with W3D_DIR=<dir of XMED-*.bin>.
++#[cfg(test)]
++mod tests {
++    use super::super::parser::W3dFileParser;
++    use std::collections::hash_map::DefaultHasher;
++    use std::hash::{Hash, Hasher};
++
++    #[test]
++    #[ignore]
++    fn digest_real_w3d() {
++        let dir = std::env::var("W3D_DIR").expect("W3D_DIR");
++        let mut files: Vec<_> = std::fs::read_dir(&dir).unwrap().filter_map(|e| e.ok()).map(|e| e.path())
++            .filter(|p| p.file_name().unwrap().to_string_lossy().starts_with("XMED")).collect();
++        files.sort();
++        for f in files {
++            let data = std::fs::read(&f).unwrap();
++            if &data[..4] != b"3DEM" { continue; }
++            let t0 = std::time::Instant::now();
++            let ifx = data.windows(4).position(|w| w == b"IFX\0").expect("IFX magic");
++            let mut p = W3dFileParser::new(data[ifx..].to_vec());
++            let res = p.parse();
++            let mut keys: Vec<_> = p.scene.clod_meshes.keys().cloned().collect();
++            keys.sort_by(|a, b| format!("{:?}", a).cmp(&format!("{:?}", b)));
++            let mut h = DefaultHasher::new();
++            let mut verts = 0usize;
++            for k in &keys {
++                let meshes = &p.scene.clod_meshes[k];
++                format!("{:?}", meshes).hash(&mut h);
++                verts += format!("{:?}", meshes).len();
++            }
++            println!("{} ok={} meshes={} dbg_len={} digest={:016x} ms={}", f.file_name().unwrap().to_string_lossy(), res.is_ok(), keys.len(), verts, h.finish(), t0.elapsed().as_millis());
++        }
++    }
++}
+diff --git a/vm-rust/src/player/handlers/datum_handlers/cast_member/havok_physics.rs b/vm-rust/src/player/handlers/datum_handlers/cast_member/havok_physics.rs
+index d967c0ed..a47480a1 100644
+--- a/vm-rust/src/player/handlers/datum_handlers/cast_member/havok_physics.rs
++++ b/vm-rust/src/player/handlers/datum_handlers/cast_member/havok_physics.rs
+@@ -1257,7 +1257,7 @@ fn apply_drag(state: &mut HavokPhysicsState, dt: f64) {
+ ///
+ /// Falls back to +Z when gravity is zero, so a scene that never sets gravity
+ /// keeps exactly the behaviour the Z-up scenes were tuned against.
+-fn scene_up_axis(gravity: V3) -> V3 {
++pub(crate) fn scene_up_axis(gravity: V3) -> V3 {
+     let m = (gravity[0] * gravity[0] + gravity[1] * gravity[1] + gravity[2] * gravity[2]).sqrt();
+     if m < 1e-9 {
+         return [0.0, 0.0, 1.0];
+diff --git a/vm-rust/src/player/handlers/datum_handlers/havok_object.rs b/vm-rust/src/player/handlers/datum_handlers/havok_object.rs
+index 85eecf18..7414d456 100644
+--- a/vm-rust/src/player/handlers/datum_handlers/havok_object.rs
++++ b/vm-rust/src/player/handlers/datum_handlers/havok_object.rs
+@@ -666,8 +666,23 @@ impl HavokObjectDatumHandlers {
+                         rb.orientation = hv::quat_from_axis_angle_degrees(axis, angle);
+                     }
+ 
+-                    if received_force {
+-                        havok.state.rigid_bodies[idx].position = pos;
++                    // The stacking heuristic below is written in Z-up terms (index 2
++                    // is "height"). In a Y-up movie it would lift the body to the
++                    // far Z edge of whatever static mesh covers the target — Sewer
++                    // Run's whole course is one fixed body, so its mortar spawned
++                    // ~90k units behind the boarder. Only stack in Z-up scenes.
++                    let z_up = {
++                        use crate::player::handlers::datum_handlers::cast_member::havok_physics as hv;
++                        let up = hv::scene_up_axis(havok.state.gravity);
++                        up[2].abs() >= up[0].abs() && up[2].abs() >= up[1].abs()
++                    };
++                    if received_force || !z_up {
++                        let rb = &mut havok.state.rigid_bodies[idx];
++                        rb.position = pos;
++                        if !received_force {
++                            rb.driven = false;
++                            rb.active = true;
++                        }
+                     } else {
+                         // Stacking spawn: real Havok interpolatingMoveTo moves the body
+                         // toward the target but collisions STOP it, so a new cube lands
+diff --git a/vm-rust/src/player/handlers/datum_handlers/sound_channel.rs b/vm-rust/src/player/handlers/datum_handlers/sound_channel.rs
+index f4a22740..6f0e59e7 100644
+--- a/vm-rust/src/player/handlers/datum_handlers/sound_channel.rs
++++ b/vm-rust/src/player/handlers/datum_handlers/sound_channel.rs
+@@ -422,6 +422,24 @@ impl SoundChannelDatumHandlers {
+     ) -> Result<(), ScriptError> {
+         debug!("🎵 handle_play_member() - Playing member directly");
+ 
++        // `play([#member: m, #loopCount: n])` — play_file pulls #member out of
++        // the list, but the loop count used to be dropped here, so every such
++        // sound played once (Sewer Run's music stopped after one 27s pass).
++        // Director: 0 = loop forever, absent = play once.
++        let loop_count = match player.get_datum(member_ref) {
++            Datum::PropList(props, _) => props
++                .iter()
++                .find_map(|(k, v)| {
++                    let is_loop = matches!(
++                        player.get_datum(k).symbol_value().ok().and_then(|s| s.into_builtin()),
++                        Some(BuiltInSymbol::LoopCount)
++                    );
++                    if is_loop { player.get_datum(v).int_value().ok() } else { None }
++                })
++                .unwrap_or(1),
++            _ => 1,
++        };
++
+         let channel_rc = Self::get_sound_channel_mut(player, datum)?;
+ 
+         // Clear any playlist and play this member directly
+@@ -431,9 +449,9 @@ impl SoundChannelDatumHandlers {
+             ch.playlist.clear();
+             ch.current_segment_index = None;
+             ch.stop_playback_nodes();
+-            
+-            ch.loop_count = 1;
+-            ch.loops_remaining = 1;
++
++            ch.loop_count = loop_count;
++            ch.loops_remaining = loop_count;
+         }
+ 
+         // Use play_file to start playback
