@@ -85,6 +85,28 @@ cp -R dist-polyfill/ruffle /path/to/web/
   may cost frames on slow ones.
 - Desktop-only projector commands (window resize/drag/quit) do nothing in the browser.
 
+## Legal notice and takedown requests
+
+This project is a non-commercial preservation effort: it keeps a game built for the
+discontinued Adobe Shockwave player playable in modern browsers. It is **not affiliated with,
+endorsed by, or sponsored by** Kinelco, Adobe, Macromedia, Havok, or any other rights holder.
+All game names, trademarks, artwork, audio and code in `web/game.dcr` and `decompiled/` remain
+the property of their respective owners. No ownership of that material is claimed by this
+repository beyond what is stated under *Licences and rights* below.
+
+**Rights holders:** if you own any material in this repository and want it credited
+differently, licensed differently, or removed, please contact:
+
+> **CONTACT_EMAIL**
+
+Include the files concerned and the basis of your claim. Valid requests will be acted on
+promptly — including removing the material from the repository and its history — without
+the need for further legal steps. GitHub's own
+[DMCA process](https://docs.github.com/en/site-policy/content-removal-policies/dmca-takedown-policy)
+is also available.
+
+This software is provided "as is", without warranty of any kind.
+
 ## Licences and rights
 
 - **Sewer Run** game content (`web/game.dcr`, `decompiled/`): © its rights holders (Kinelco).
